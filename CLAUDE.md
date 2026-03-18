@@ -5,9 +5,9 @@
 <!-- Complete ALL items before starting any feature work. Remove each [ ] as you go. -->
 - [x] Fill in Project Identity table below
 - [x] Replace `[pm]` with your package manager in Commands and Rules
-- [ ] Update Project Structure with your actual folders
+- [x] Update Project Structure with your actual folders
 - [ ] Add project-specific code conventions (fonts, colors, patterns)
-- [ ] Define SECRET_SCAN_PATTERNS for your API keys
+- [x] Define SECRET_SCAN_PATTERNS for your API keys
 - [x] Verify `.gitignore` includes `.env*` and `!.env.example`
 - [ ] Copy `docs/templates/logger-template.ts` to `src/lib/logger.ts`
 - [x] Create ARCHITECTURE.md from template at project root
@@ -22,16 +22,16 @@
 |-------|-------|
 | Name | Personal Assistant Home |
 | Description | AI-powered personal assistant to help organise your personal life |
-| Framework | [TBD — decide during /project-setup] |
+| Framework | React 19 + Vite 6 (frontend) + Express 5 (backend) |
 | Language | TypeScript (strict mode) |
-| Styling | [TBD] |
-| Database | [TBD] |
-| AI Provider | Claude API |
-| Auth | [TBD] |
+| Styling | Tailwind CSS 4 |
+| Database | SQLite via Drizzle ORM |
+| AI Provider | Configurable per task — Claude API (default), Ollama, OpenAI-compatible |
+| Auth | None (local single-user) |
 | Package Manager | npm |
-| Test Runner | [TBD] |
-| Deployment | [TBD] |
-| Dev Server Port | [TBD] |
+| Test Runner | Vitest |
+| Deployment | Local / self-hosted |
+| Dev Server Port | 5173 (client) / 3001 (server) |
 
 ## Commands
 ```
@@ -46,19 +46,32 @@ npm run typecheck    # TypeScript check
 ## Project Structure
 ```
 src/
-  app/                    # Pages / routes
-  features/               # Feature modules (each has its own CLAUDE.md)
-    [feature-name]/
-      CLAUDE.md           # Feature boundary rules
-      components/ hooks/ services/ types.ts
-  shared/                 # Cross-feature code (ask before modifying)
-  lib/                    # Project-wide utilities (logger, db, config)
-tests/                    # Mirrors src/ structure
-  test-results/           # Test run output logs (gitignored)
-Plan/                     # Feature planning lifecycle
-  Planning/               # Active plans (working drafts during planning)
-  Archive/                # Completed plans (moved here after development)
-docs/                     # requirements/, decisions/, templates/
+  client/                  # React frontend (Vite)
+    app/                   # Pages / routes (dashboard, documents, transactions, analysis, settings)
+    features/              # Frontend feature modules (each has CLAUDE.md + logger)
+    shared/                # Cross-feature UI components
+    lib/logger.ts          # Client logger
+    main.tsx               # Entry point
+    index.css              # Tailwind CSS 4 imports
+  server/                  # Express backend
+    index.ts               # Entry point — binds to 127.0.0.1:3001
+    app.ts                 # Express app setup
+    features/              # Backend feature modules (each has CLAUDE.md + logger)
+    shared/middleware/      # Error handler, validation, rate limiter
+    lib/
+      ai/                  # AI provider router + provider implementations
+      pdf/                 # PDF text extraction + splitting
+      db/                  # Drizzle instance, schema, migrations, seed
+      logger.ts            # Server logger
+  shared/types/            # Types shared between client and server
+data/                      # SQLite DB file (gitignored)
+uploads/                   # PDF storage (gitignored)
+tests/                     # Integration tests
+  test-results/            # Test run output logs (gitignored)
+Plan/                      # Feature planning lifecycle
+  Planning/                # Active plans (working drafts during planning)
+  Archive/                 # Completed plans (moved here after development)
+docs/                      # requirements/, decisions/, templates/
 ```
 
 ## Code Conventions
@@ -89,7 +102,7 @@ docs/                     # requirements/, decisions/, templates/
 ## Secret Patterns
 <!-- REQUIRED: Add patterns specific to your project's API keys -->
 ```
-SECRET_SCAN_PATTERNS="sk-\|AKIA\|ghp_\|Bearer \|password\s*="
+SECRET_SCAN_PATTERNS="sk-\|sk-ant-\|AKIA\|ghp_\|Bearer \|password\s*="
 ```
 <!-- Examples to add per project:
   Firebase: firebase.*apiKey
