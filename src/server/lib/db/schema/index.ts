@@ -1,0 +1,84 @@
+import { sqliteTable, text, real, integer } from 'drizzle-orm/sqlite-core';
+
+export const documents = sqliteTable('documents', {
+  id: text('id').primaryKey(),
+  filename: text('filename').notNull(),
+  docType: text('doc_type').notNull(),
+  institution: text('institution'),
+  period: text('period'),
+  processingStatus: text('processing_status').notNull().default('pending'),
+  processedAt: text('processed_at'),
+  rawExtraction: text('raw_extraction'),
+  extractedText: text('extracted_text'),
+  filePath: text('file_path'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const transactions = sqliteTable('transactions', {
+  id: text('id').primaryKey(),
+  documentId: text('document_id').notNull().references(() => documents.id),
+  date: text('date').notNull(),
+  description: text('description').notNull(),
+  amount: real('amount').notNull(),
+  type: text('type').notNull(),
+  categoryId: text('category_id').references(() => categories.id),
+  merchant: text('merchant'),
+  isRecurring: integer('is_recurring', { mode: 'boolean' }).default(false),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const categories = sqliteTable('categories', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  parentId: text('parent_id'),
+  color: text('color'),
+  icon: text('icon'),
+  isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const categoryRules = sqliteTable('category_rules', {
+  id: text('id').primaryKey(),
+  categoryId: text('category_id').notNull().references(() => categories.id),
+  pattern: text('pattern').notNull(),
+  field: text('field').notNull().default('description'),
+  isAiGenerated: integer('is_ai_generated', { mode: 'boolean' }).default(false),
+  confidence: real('confidence'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const accountSummaries = sqliteTable('account_summaries', {
+  id: text('id').primaryKey(),
+  documentId: text('document_id').notNull().references(() => documents.id),
+  openingBalance: real('opening_balance'),
+  closingBalance: real('closing_balance'),
+  totalCredits: real('total_credits'),
+  totalDebits: real('total_debits'),
+  currency: text('currency').default('AUD'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const analysisSnapshots = sqliteTable('analysis_snapshots', {
+  id: text('id').primaryKey(),
+  snapshotType: text('snapshot_type').notNull(),
+  data: text('data').notNull(),
+  generatedAt: text('generated_at').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const aiSettings = sqliteTable('ai_settings', {
+  id: text('id').primaryKey(),
+  taskType: text('task_type').notNull().unique(),
+  provider: text('provider').notNull(),
+  model: text('model').notNull(),
+  fallbackProvider: text('fallback_provider'),
+  fallbackModel: text('fallback_model'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
