@@ -1,0 +1,18 @@
+{
+  "case_id": "example-001",
+  "description": "Describe what this test case exercises",
+  "input": {
+    "prompt": "[The input/prompt you send to your AI feature]",
+    "context": "[Any additional context provided — user history, settings, etc.]"
+  },
+  "expected_output": {
+    "summary": "[Brief description of what good output looks like]",
+    "must_include": ["[key phrase 1]", "[key phrase 2]"],
+    "must_not_include": ["[banned phrase 1]", "[AI slop term]"],
+    "tone": "[expected tone: professional / casual / empathetic / etc.]",
+    "max_length_words": null,
+    "format": "[expected format: paragraph / bullet list / JSON / etc.]"
+  },
+  "tags": ["[category]", "[difficulty]"],
+  "notes": "[Any special considerations — why this case exists, what it caught before]"
+}

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if Node project exists
+        id: node_check
+        run: |
+          if [ -f "package.json" ]; then
+            echo "has_node=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_node=false" >> $GITHUB_OUTPUT
+            echo "No package.json found — skipping Node.js steps (template repo)"
+          fi
+
+      - name: Setup Node.js
+        if: steps.node_check.outputs.has_node == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          # cache: 'npm'   # uncomment and set to pnpm/bun/npm once lock file exists
+
+      - name: Install dependencies
+        if: steps.node_check.outputs.has_node == 'true'
+        run: npm install   # replace with your package manager (pnpm/bun/yarn)
+
+      - name: Type check
+        if: steps.node_check.outputs.has_node == 'true'
+        run: npm run typecheck
+
+      - name: Lint
+        if: steps.node_check.outputs.has_node == 'true'
+        run: npm run lint
+
+      - name: Test
+        if: steps.node_check.outputs.has_node == 'true'
+        run: npm run test
+
+      - name: Secret scan
+        run: |
+          if grep -rn "sk-\|AKIA\|ghp_\|Bearer \|password\s*=" \
+            --include="*.ts" --include="*.tsx" --include="*.js" \
+            --include="*.json" --include="*.env" \
+            --include="*.yaml" --include="*.yml" \
+            . 2>/dev/null \
+            | grep -v node_modules \
+            | grep -v ".env.example" \
+            | grep -v ".git/" \
+            | grep -v ".github/workflows/"; then
+            echo "SECRETS DETECTED — merge blocked"
+            exit 1
+          else
+            echo "Secret scan passed"
+          fi

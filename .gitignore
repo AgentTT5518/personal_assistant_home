@@ -1,0 +1,22 @@
+# System
+.DS_Store
+
+# Claude Code local settings (not portable between machines)
+.claude/*
+!.claude/commands/
+
+# Dependencies
+node_modules/
+
+# Environment variables — never commit secrets
+.env*
+!.env.example
+
+# Test results
+tests/test-results/
+
+# Build output
+dist/
+.next/
+out/
+build/
