@@ -209,6 +209,29 @@ describe('Transaction Routes', () => {
     });
   });
 
+  describe('POST /api/transactions/ai-categorise', () => {
+    it('returns 202 and fires categorisation asynchronously', async () => {
+      const doc = seedDocument();
+      const txn = seedTransaction(doc.id);
+
+      const res = await request(app)
+        .post('/api/transactions/ai-categorise')
+        .send({ transactionIds: [txn.id] });
+
+      expect(res.status).toBe(202);
+      expect(res.body.status).toBe('processing');
+      expect(res.body.count).toBe(1);
+    });
+
+    it('rejects empty transactionIds array', async () => {
+      const res = await request(app)
+        .post('/api/transactions/ai-categorise')
+        .send({ transactionIds: [] });
+
+      expect(res.status).toBe(400);
+    });
+  });
+
   describe('POST /api/transactions/auto-categorise', () => {
     it('runs rule categorisation and returns stats', async () => {
       const cat = seedCategory('Transport');
