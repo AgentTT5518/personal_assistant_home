@@ -72,6 +72,12 @@ export const analysisSnapshots = sqliteTable('analysis_snapshots', {
   updatedAt: text('updated_at').notNull(),
 });
 
+export const appSettings = sqliteTable('app_settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
 export const aiSettings = sqliteTable('ai_settings', {
   id: text('id').primaryKey(),
   taskType: text('task_type').notNull().unique(),

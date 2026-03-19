@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-19 (Phase 1C) | Updated by: Claude Code
+> Last updated: 2026-03-19 (Phase 1D) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -71,6 +71,9 @@ graph TB
 | Vision Service | `src/server/features/document-processor/vision.service.ts` | Claude Vision reprocessing for scanned PDFs | @anthropic-ai/sdk |
 | Cleanup Service | `src/server/features/document-processor/cleanup.service.ts` | Daily cleanup of expired upload files (30-day retention) | — |
 | Document Upload UI | `src/client/features/document-upload/` | Upload dropzone, document list/detail, AI settings panel | react-dropzone, @tanstack/react-query |
+| App Settings (Server) | `src/server/features/settings/` | Key-value app settings CRUD with currency validation | drizzle-orm, zod |
+| Dashboard (Client) | `src/client/features/dashboard/` | Financial overview: summary cards, category pie chart, monthly trend chart, recent transactions, date range filtering | recharts, @tanstack/react-query, lucide-react |
+| Currency Formatter | `src/client/shared/utils/format-currency.ts` | Shared `Intl.NumberFormat` wrapper with caching | — |
 
 ## Data Model
 
@@ -84,6 +87,7 @@ graph TB
 | CategoryRule | `category_rules` | id, pattern, field, is_ai_generated, confidence | Belongs to Category |
 | AccountSummary | `account_summaries` | id, opening_balance, closing_balance, total_credits, total_debits | Belongs to Document |
 | AnalysisSnapshot | `analysis_snapshots` | id, snapshot_type, data, generated_at | — |
+| AppSetting | `app_settings` | key (PK), value | — |
 | AISetting | `ai_settings` | id, task_type, provider, model, fallback_provider, fallback_model | — |
 
 ### Schema Notes
@@ -93,6 +97,7 @@ graph TB
 - `documents.extracted_text` stores raw text from pdf-parse
 - `categories` support tree structure via `parent_id`
 - `category_rules.is_ai_generated` tracks rules created by AI vs user-defined
+- `app_settings` is a key-value store — seeded with `currency: AUD`
 - `ai_settings.task_type` is unique — one config per task type
 
 ## API Endpoints
@@ -121,6 +126,8 @@ graph TB
 | GET | `/api/categories/:id/rules` | List rules for category | No | Active |
 | POST | `/api/categories/rules` | Create category rule (validates regex) | No | Active |
 | DELETE | `/api/categories/rules/:id` | Delete category rule | No | Active |
+| GET | `/api/settings/app` | List all app settings as key-value pairs | No | Active |
+| PUT | `/api/settings/app/:key` | Update app setting (validates currency codes) | No | Active |
 
 ## External Integrations
 
@@ -178,6 +185,7 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Phase 1A: Foundation | 2026-03-18 | React 19 + Vite 6 + Express 5 + Tailwind CSS 4 + Drizzle ORM/SQLite + AI provider router (Claude/Ollama/OpenAI-compat) + PDF extractor (pdf-parse v2) + Vitest dual projects + ESLint | All src/ files, config files |
 | Phase 1B: Document Upload | 2026-03-19 | PDF upload + async AI extraction pipeline + Vision reprocessing for scanned docs + file cleanup service + React Query polling + 8 new API endpoints | `src/server/features/document-processor/`, `src/client/features/document-upload/`, shared types, app.ts, index.ts, seed.ts, page stubs |
 | Phase 1C: Transactions | 2026-03-19 | Transaction browsing/filtering/search/pagination + two-tier categorisation (rule-based + AI Haiku) + category management (CRUD, hierarchical, rules) + bulk operations + auto-rule generation + stats dashboard + 14 new API endpoints | `src/server/features/transactions/`, `src/client/features/transactions/`, shared types, validation, validate.ts, app.ts, seed.ts, extraction/vision hooks |
+| Phase 1D: Dashboard | 2026-03-19 | Financial overview dashboard with Recharts (category pie chart, monthly trend bar chart) + configurable currency via app_settings table + date range filtering (presets + custom) + recent transactions list + shared formatCurrency utility + StatsSummary retrofit + 2 new API endpoints | `src/client/features/dashboard/`, `src/server/features/settings/`, `src/client/shared/utils/`, schema, seed, app.ts, dashboard.tsx, stats-summary.tsx |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._
