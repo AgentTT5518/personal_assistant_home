@@ -8,6 +8,13 @@
       "when": 1773827767265,
       "tag": "0000_rapid_shaman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1773889756572,
+      "tag": "0001_calm_roulette",
+      "breakpoints": true
     }
   ]
 }

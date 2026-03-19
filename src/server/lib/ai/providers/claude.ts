@@ -25,7 +25,7 @@ export class ClaudeProvider implements AIProvider {
 
     try {
       const response = await client.messages.create({
-        model: options?.systemPrompt ? 'claude-sonnet-4-5-20250514' : 'claude-sonnet-4-5-20250514',
+        model: 'claude-sonnet-4-5-20250514',
         max_tokens: options?.maxTokens ?? 4096,
         ...(options?.temperature !== undefined && { temperature: options.temperature }),
         ...(systemMessages.length > 0 && { system: systemMessages.map((m) => m.content).join('\n') }),

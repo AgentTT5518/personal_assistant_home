@@ -46,7 +46,7 @@ try {
         createdAt: now,
         updatedAt: now,
       })
-      .onConflictDoNothing()
+      .onConflictDoNothing({ target: schema.categories.name })
       .run();
   }
 
