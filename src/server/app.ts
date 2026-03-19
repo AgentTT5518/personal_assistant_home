@@ -18,7 +18,9 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve static files in production
+// --- API routers are mounted here (before static files) ---
+
+// Serve static files in production (must be after all API routes)
 const clientDir = path.resolve('dist/client');
 if (fs.existsSync(clientDir)) {
   app.use(express.static(clientDir));

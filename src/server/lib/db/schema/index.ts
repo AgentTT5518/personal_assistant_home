@@ -31,7 +31,7 @@ export const transactions = sqliteTable('transactions', {
 
 export const categories = sqliteTable('categories', {
   id: text('id').primaryKey(),
-  name: text('name').notNull(),
+  name: text('name').notNull().unique(),
   parentId: text('parent_id'),
   color: text('color'),
   icon: text('icon'),
