@@ -10,6 +10,7 @@ export default defineConfig({
           root: './src/server',
           environment: 'node',
           include: ['**/*.test.ts'],
+          setupFiles: ['../../tests/server-setup.ts'],
         },
         resolve: {
           alias: {

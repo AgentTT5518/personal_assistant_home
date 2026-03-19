@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-18 | Updated by: Claude Code
+> Last updated: 2026-03-19 | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -61,6 +61,12 @@ graph TB
 | Rate Limiter | `src/server/shared/middleware/rate-limiter.ts` | AI call rate limiting | — |
 | Validation | `src/server/shared/middleware/validate.ts` | Zod-based request validation | zod |
 | Shared Types | `src/shared/types/` | Types + zod schemas shared between client/server | zod |
+| Document Processor | `src/server/features/document-processor/` | PDF upload, AI extraction pipeline, vision reprocessing, file cleanup | multer, pdf-lib, ai-router, @anthropic-ai/sdk |
+| Upload Middleware | `src/server/features/document-processor/upload.middleware.ts` | Multer PDF upload (10MB limit, UUID naming) | multer |
+| Extraction Service | `src/server/features/document-processor/extraction.service.ts` | Async pipeline: split → extract text → AI → validate → dedup → DB write | pdf-parse, ai-router, drizzle-orm |
+| Vision Service | `src/server/features/document-processor/vision.service.ts` | Claude Vision reprocessing for scanned PDFs | @anthropic-ai/sdk |
+| Cleanup Service | `src/server/features/document-processor/cleanup.service.ts` | Daily cleanup of expired upload files (30-day retention) | — |
+| Document Upload UI | `src/client/features/document-upload/` | Upload dropzone, document list/detail, AI settings panel | react-dropzone, @tanstack/react-query |
 
 ## Data Model
 
@@ -90,6 +96,14 @@ graph TB
 | Method | Path | Description | Auth | Status |
 |--------|------|-------------|------|--------|
 | GET | `/api/health` | Health check | No | Active |
+| POST | `/api/documents/upload` | Upload PDF + trigger async extraction | No | Active |
+| GET | `/api/documents` | List documents (optional ?status, ?docType filters) | No | Active |
+| GET | `/api/documents/:id` | Get single document | No | Active |
+| GET | `/api/documents/:id/transactions` | Get transactions for document | No | Active |
+| POST | `/api/documents/:id/reprocess-vision` | Trigger Claude Vision re-processing (rate limited) | No | Active |
+| DELETE | `/api/documents/:id` | Delete document + file + transactions | No | Active |
+| GET | `/api/ai-settings` | List all AI settings | No | Active |
+| PUT | `/api/ai-settings/:taskType` | Update AI provider/model for task type | No | Active |
 
 ## External Integrations
 
@@ -145,6 +159,7 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Project Scaffolding | 2026-03-18 | Initial setup from Claude_BestPractise template; npm as package manager; Claude API as AI provider | All initial files |
 | Phase 0: CLAUDE.md Completion | 2026-03-18 | Filled TBD fields, updated structure, added sk-ant- scan, configured .env.example and .gitignore | CLAUDE.md, .env.example, .gitignore |
 | Phase 1A: Foundation | 2026-03-18 | React 19 + Vite 6 + Express 5 + Tailwind CSS 4 + Drizzle ORM/SQLite + AI provider router (Claude/Ollama/OpenAI-compat) + PDF extractor (pdf-parse v2) + Vitest dual projects + ESLint | All src/ files, config files |
+| Phase 1B: Document Upload | 2026-03-19 | PDF upload + async AI extraction pipeline + Vision reprocessing for scanned docs + file cleanup service + React Query polling + 8 new API endpoints | `src/server/features/document-processor/`, `src/client/features/document-upload/`, shared types, app.ts, index.ts, seed.ts, page stubs |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._

@@ -18,7 +18,9 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// --- API routers are mounted here (before static files) ---
+// --- API routers ---
+import { documentRouter } from './features/document-processor/index.js';
+app.use('/api', documentRouter);
 
 // Serve static files in production (must be after all API routes)
 const clientDir = path.resolve('dist/client');
