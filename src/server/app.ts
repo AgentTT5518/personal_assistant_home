@@ -20,7 +20,10 @@ app.get('/api/health', (_req, res) => {
 
 // --- API routers ---
 import { documentRouter } from './features/document-processor/index.js';
+import { transactionRouter, categoryRouter } from './features/transactions/index.js';
 app.use('/api', documentRouter);
+app.use('/api', transactionRouter);
+app.use('/api', categoryRouter);
 
 // Serve static files in production (must be after all API routes)
 const clientDir = path.resolve('dist/client');

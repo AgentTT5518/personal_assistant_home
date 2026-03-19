@@ -41,6 +41,8 @@ describe('runCleanup', () => {
   });
 
   afterEach(() => {
+    db.delete(schema.transactions).run();
+    db.delete(schema.accountSummaries).run();
     db.delete(schema.documents).run();
     delete process.env.UPLOAD_RETENTION_DAYS;
   });
