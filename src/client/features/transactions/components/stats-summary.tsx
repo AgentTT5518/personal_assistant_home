@@ -1,5 +1,7 @@
 import { Loader2, TrendingUp, TrendingDown, DollarSign, HelpCircle, Zap } from 'lucide-react';
 import { useTransactionStats, useAutoCategorise } from '../hooks.js';
+import { formatCurrency } from '../../../shared/utils/format-currency.js';
+import { useCurrency } from '../../dashboard/hooks.js';
 
 interface StatsSummaryProps {
   dateFrom?: string;
@@ -10,6 +12,7 @@ interface StatsSummaryProps {
 export function StatsSummary({ dateFrom, dateTo, refetchInterval }: StatsSummaryProps) {
   const { data: stats, isLoading } = useTransactionStats(dateFrom, dateTo, { refetchInterval });
   const autoCategorise = useAutoCategorise();
+  const currency = useCurrency();
 
   if (isLoading) {
     return (
@@ -21,8 +24,7 @@ export function StatsSummary({ dateFrom, dateTo, refetchInterval }: StatsSummary
 
   if (!stats) return null;
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(value);
+  const fmt = (value: number) => formatCurrency(value, currency);
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -32,7 +34,7 @@ export function StatsSummary({ dateFrom, dateTo, refetchInterval }: StatsSummary
           Income
         </div>
         <div className="text-xl font-semibold text-green-600">
-          {formatCurrency(stats.totalIncome)}
+          {fmt(stats.totalIncome)}
         </div>
       </div>
 
@@ -42,7 +44,7 @@ export function StatsSummary({ dateFrom, dateTo, refetchInterval }: StatsSummary
           Expenses
         </div>
         <div className="text-xl font-semibold text-red-600">
-          {formatCurrency(stats.totalExpenses)}
+          {fmt(stats.totalExpenses)}
         </div>
       </div>
 
@@ -52,7 +54,7 @@ export function StatsSummary({ dateFrom, dateTo, refetchInterval }: StatsSummary
           Net
         </div>
         <div className={`text-xl font-semibold ${stats.netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-          {formatCurrency(stats.netAmount)}
+          {fmt(stats.netAmount)}
         </div>
       </div>
 

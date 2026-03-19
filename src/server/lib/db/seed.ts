@@ -123,6 +123,21 @@ try {
       .run();
   }
 
+  log.info('Seeding app settings...');
+  const defaultAppSettings = [
+    { key: 'currency', value: 'AUD' },
+  ];
+  for (const setting of defaultAppSettings) {
+    db.insert(schema.appSettings)
+      .values({
+        key: setting.key,
+        value: setting.value,
+        updatedAt: now,
+      })
+      .onConflictDoNothing()
+      .run();
+  }
+
   log.info('Seed complete');
 } catch (error) {
   log.error('Seed failed', error instanceof Error ? error : new Error(String(error)));
