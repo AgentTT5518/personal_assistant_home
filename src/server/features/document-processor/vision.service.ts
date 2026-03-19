@@ -7,6 +7,7 @@ import { extractionResultSchema } from '../../../shared/types/validation.js';
 import type { DocumentType } from '../../../shared/types/index.js';
 import { getPromptForDocType } from './prompts/index.js';
 import { deduplicateTransactions, buildTransactionKey } from './dedup.js';
+import { runRuleCategorisation } from '../transactions/categorisation.service.js';
 import { log } from './logger.js';
 
 const BATCH_INSERT_SIZE = 100;
@@ -216,6 +217,13 @@ export async function reprocessWithVision(documentId: string): Promise<void> {
       documentId,
       transactions: dedupedTransactions.length,
     });
+
+    // Fire-and-forget rule categorisation on newly extracted transactions
+    try {
+      runRuleCategorisation();
+    } catch (catErr) {
+      log.error('Post-vision categorisation failed', catErr instanceof Error ? catErr : new Error(String(catErr)));
+    }
   } catch (error) {
     log.error('Vision reprocessing failed', error instanceof Error ? error : new Error(String(error)), { documentId });
     try {

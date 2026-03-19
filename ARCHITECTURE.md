@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-19 | Updated by: Claude Code
+> Last updated: 2026-03-19 (Phase 1C) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -61,6 +61,10 @@ graph TB
 | Rate Limiter | `src/server/shared/middleware/rate-limiter.ts` | AI call rate limiting | — |
 | Validation | `src/server/shared/middleware/validate.ts` | Zod-based request validation | zod |
 | Shared Types | `src/shared/types/` | Types + zod schemas shared between client/server | zod |
+| Transactions (Server) | `src/server/features/transactions/` | Transaction filtering/search/pagination, rule-based + AI categorisation, category CRUD, bulk operations | drizzle-orm, uuid, zod |
+| Categorisation Engine | `src/server/features/transactions/categorisation.service.ts` | Rule-based regex matching against category rules, batch categorisation | drizzle-orm |
+| AI Categorisation | `src/server/features/transactions/ai-categorisation.service.ts` | AI-assisted categorisation via Haiku, auto-rule generation | ai-router, zod |
+| Transactions (Client) | `src/client/features/transactions/` | Transaction table with filtering/sorting/pagination, category management modal, bulk actions, stats dashboard | @tanstack/react-query, lucide-react |
 | Document Processor | `src/server/features/document-processor/` | PDF upload, AI extraction pipeline, vision reprocessing, file cleanup | multer, pdf-lib, ai-router, @anthropic-ai/sdk |
 | Upload Middleware | `src/server/features/document-processor/upload.middleware.ts` | Multer PDF upload (10MB limit, UUID naming) | multer |
 | Extraction Service | `src/server/features/document-processor/extraction.service.ts` | Async pipeline: split → extract text → AI → validate → dedup → DB write | pdf-parse, ai-router, drizzle-orm |
@@ -104,6 +108,19 @@ graph TB
 | DELETE | `/api/documents/:id` | Delete document + file + transactions | No | Active |
 | GET | `/api/ai-settings` | List all AI settings | No | Active |
 | PUT | `/api/ai-settings/:taskType` | Update AI provider/model for task type | No | Active |
+| GET | `/api/transactions` | List transactions with filtering, sorting, pagination | No | Active |
+| GET | `/api/transactions/stats` | Aggregated stats (income/expenses/by-category/by-month) | No | Active |
+| PUT | `/api/transactions/:id` | Update transaction category | No | Active |
+| POST | `/api/transactions/bulk-categorise` | Bulk assign category to multiple transactions | No | Active |
+| POST | `/api/transactions/auto-categorise` | Trigger rule-based categorisation (rate limited) | No | Active |
+| POST | `/api/transactions/ai-categorise` | Trigger AI categorisation (fire-and-forget, rate limited) | No | Active |
+| GET | `/api/categories` | List all categories with transaction counts | No | Active |
+| POST | `/api/categories` | Create category | No | Active |
+| PUT | `/api/categories/:id` | Update category | No | Active |
+| DELETE | `/api/categories/:id` | Delete category (uncategorises transactions, cascades rules) | No | Active |
+| GET | `/api/categories/:id/rules` | List rules for category | No | Active |
+| POST | `/api/categories/rules` | Create category rule (validates regex) | No | Active |
+| DELETE | `/api/categories/rules/:id` | Delete category rule | No | Active |
 
 ## External Integrations
 
@@ -160,6 +177,7 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Phase 0: CLAUDE.md Completion | 2026-03-18 | Filled TBD fields, updated structure, added sk-ant- scan, configured .env.example and .gitignore | CLAUDE.md, .env.example, .gitignore |
 | Phase 1A: Foundation | 2026-03-18 | React 19 + Vite 6 + Express 5 + Tailwind CSS 4 + Drizzle ORM/SQLite + AI provider router (Claude/Ollama/OpenAI-compat) + PDF extractor (pdf-parse v2) + Vitest dual projects + ESLint | All src/ files, config files |
 | Phase 1B: Document Upload | 2026-03-19 | PDF upload + async AI extraction pipeline + Vision reprocessing for scanned docs + file cleanup service + React Query polling + 8 new API endpoints | `src/server/features/document-processor/`, `src/client/features/document-upload/`, shared types, app.ts, index.ts, seed.ts, page stubs |
+| Phase 1C: Transactions | 2026-03-19 | Transaction browsing/filtering/search/pagination + two-tier categorisation (rule-based + AI Haiku) + category management (CRUD, hierarchical, rules) + bulk operations + auto-rule generation + stats dashboard + 14 new API endpoints | `src/server/features/transactions/`, `src/client/features/transactions/`, shared types, validation, validate.ts, app.ts, seed.ts, extraction/vision hooks |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._

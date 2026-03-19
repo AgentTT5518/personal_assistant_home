@@ -62,3 +62,43 @@ export const aiSettingsUpdateSchema = z.object({
   fallbackProvider: aiProviderTypeSchema.nullable().optional(),
   fallbackModel: z.string().max(100).nullable().optional(),
 });
+
+export const createCategorySchema = z.object({
+  name: z.string().min(1).max(100),
+  parentId: z.string().uuid().nullable().optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  icon: z.string().min(1).max(50),
+});
+
+export const updateCategorySchema = createCategorySchema.partial();
+
+export const createCategoryRuleSchema = z.object({
+  categoryId: z.string().uuid(),
+  pattern: z.string().min(1).max(500),
+  field: z.enum(['description', 'merchant']).default('description'),
+});
+
+export const updateTransactionSchema = z.object({
+  categoryId: z.string().uuid().nullable(),
+});
+
+export const bulkCategoriseSchema = z.object({
+  transactionIds: z.array(z.string().uuid()).min(1).max(500),
+  categoryId: z.string().uuid().nullable(),
+});
+
+export const transactionFiltersSchema = z.object({
+  search: z.string().optional(),
+  categoryId: z.string().optional(),
+  type: z.enum(['debit', 'credit']).optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+  amountMin: z.coerce.number().optional(),
+  amountMax: z.coerce.number().optional(),
+  documentId: z.string().uuid().optional(),
+  isRecurring: z.coerce.boolean().optional(),
+  sortBy: z.enum(['date', 'amount', 'description']).default('date'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(50),
+});

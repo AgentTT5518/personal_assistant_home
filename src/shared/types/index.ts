@@ -84,7 +84,72 @@ export interface TransactionResponse {
   type: 'debit' | 'credit';
   merchant: string | null;
   isRecurring: boolean;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
+  documentFilename: string | null;
   createdAt: string;
+}
+
+export interface CategoryResponse {
+  id: string;
+  name: string;
+  parentId: string | null;
+  color: string;
+  icon: string;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+export interface CategoryRuleResponse {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  pattern: string;
+  field: string;
+  isAiGenerated: boolean;
+  confidence: number;
+  createdAt: string;
+}
+
+export interface TransactionFilters {
+  search?: string;
+  categoryId?: string;
+  type?: 'debit' | 'credit';
+  dateFrom?: string;
+  dateTo?: string;
+  amountMin?: number;
+  amountMax?: number;
+  documentId?: string;
+  isRecurring?: boolean;
+  sortBy?: 'date' | 'amount' | 'description';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface TransactionStats {
+  totalIncome: number;
+  totalExpenses: number;
+  netAmount: number;
+  transactionCount: number;
+  uncategorisedCount: number;
+  byCategory: Array<{
+    categoryId: string;
+    categoryName: string;
+    categoryColor: string;
+    total: number;
+    count: number;
+  }>;
+  byMonth: Array<{ month: string; income: number; expenses: number }>;
 }
 
 export interface AiSettingResponse {

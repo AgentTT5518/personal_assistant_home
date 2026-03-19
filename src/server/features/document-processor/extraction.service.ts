@@ -9,6 +9,7 @@ import type { DocumentType } from '../../../shared/types/index.js';
 import { splitPdfIfNeeded } from './splitter.js';
 import { getPromptForDocType } from './prompts/index.js';
 import { deduplicateTransactions, buildTransactionKey } from './dedup.js';
+import { runRuleCategorisation } from '../transactions/categorisation.service.js';
 import { log } from './logger.js';
 
 const BATCH_INSERT_SIZE = 100;
@@ -199,6 +200,13 @@ export async function processDocument(documentId: string): Promise<void> {
       transactions: dedupedTransactions.length,
       isScanned,
     });
+
+    // Fire-and-forget rule categorisation on newly extracted transactions
+    try {
+      runRuleCategorisation();
+    } catch (catErr) {
+      log.error('Post-extraction categorisation failed', catErr instanceof Error ? catErr : new Error(String(catErr)));
+    }
   } catch (error) {
     log.error('Document processing failed', error instanceof Error ? error : new Error(String(error)), { documentId });
     try {

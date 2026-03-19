@@ -214,6 +214,10 @@ documentRouter.get('/documents/:id/transactions', (req, res) => {
     type: t.type as 'debit' | 'credit',
     merchant: t.merchant,
     isRecurring: t.isRecurring ?? false,
+    categoryId: t.categoryId,
+    categoryName: null,
+    categoryColor: null,
+    documentFilename: null,
     createdAt: t.createdAt,
   }));
 
