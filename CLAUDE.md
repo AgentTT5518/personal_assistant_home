@@ -12,9 +12,8 @@
 - [ ] Copy `docs/templates/logger-template.ts` to `src/lib/logger.ts`
 - [x] Create ARCHITECTURE.md from template at project root
 - [ ] Run `/project-setup` to scaffold additional artifacts (skills, evals, brand docs)
-- [x] Replace `[pm]` in `.github/workflows/ci.yml` and `cd.yml` with your package manager
+- [x] Replace `[pm]` in `.github/workflows/ci.yml` with your package manager
 - [ ] GitHub: enable branch protection on `main` → Settings → Branches → require `ci` status check to pass
-- [ ] GitHub (if deploying): add deploy secrets → Settings → Secrets and variables → Actions (e.g. Vercel: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`)
 <!-- DELETE this checklist once all items are done — a clean CLAUDE.md = a configured project -->
 
 ## Project Identity
