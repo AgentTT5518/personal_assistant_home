@@ -29,6 +29,7 @@ const defaultAiSettings = [
   { taskType: 'analysis_insights', provider: 'claude', model: 'claude-sonnet-4-5-20250514' },
   { taskType: 'insurance_analysis', provider: 'claude', model: 'claude-sonnet-4-5-20250514' },
   { taskType: 'health_analysis', provider: 'claude', model: 'claude-sonnet-4-5-20250514' },
+  { taskType: 'pdf_vision_extraction', provider: 'claude', model: 'claude-sonnet-4-5-20250514' },
 ];
 
 try {

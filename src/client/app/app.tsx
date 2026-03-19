@@ -5,6 +5,7 @@ import { DocumentsPage } from './pages/documents';
 import { TransactionsPage } from './pages/transactions';
 import { AnalysisPage } from './pages/analysis';
 import { SettingsPage } from './pages/settings';
+import { DocumentDetail } from '../features/document-upload/index.js';
 
 export function App() {
   return (
@@ -12,6 +13,7 @@ export function App() {
       <Route element={<Layout />}>
         <Route index element={<DashboardPage />} />
         <Route path="documents" element={<DocumentsPage />} />
+        <Route path="documents/:id" element={<DocumentDetail />} />
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="analysis" element={<AnalysisPage />} />
         <Route path="settings" element={<SettingsPage />} />

@@ -14,6 +14,7 @@ export const aiProviderTypeSchema = z.enum(['claude', 'ollama', 'openai_compat']
 
 export const taskTypeSchema = z.enum([
   'pdf_extraction',
+  'pdf_vision_extraction',
   'categorisation',
   'analysis_insights',
   'insurance_analysis',
@@ -24,6 +25,35 @@ export const uploadDocumentSchema = z.object({
   docType: documentTypeSchema,
   institution: z.string().min(1).max(200).optional(),
   period: z.string().max(100).optional(),
+});
+
+export const extractedTransactionSchema = z.object({
+  date: z.string().date(),
+  description: z.string(),
+  amount: z.number(),
+  type: z.enum(['debit', 'credit']),
+  merchant: z.string().optional(),
+  isRecurring: z.boolean().optional(),
+});
+
+export const extractionResultSchema = z.object({
+  transactions: z.array(extractedTransactionSchema),
+  accountSummary: z
+    .object({
+      openingBalance: z.number().optional(),
+      closingBalance: z.number().optional(),
+      totalCredits: z.number().optional(),
+      totalDebits: z.number().optional(),
+      currency: z.string().optional(),
+    })
+    .optional(),
+  metadata: z
+    .object({
+      institution: z.string().optional(),
+      period: z.string().optional(),
+      accountNumber: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const aiSettingsUpdateSchema = z.object({

@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { app } from './app.js';
+import { startCleanupService } from './features/document-processor/index.js';
 import { createLogger } from './lib/logger.js';
 
 const log = createLogger('server');
@@ -9,4 +10,5 @@ const HOST = '127.0.0.1';
 
 app.listen(PORT, HOST, () => {
   log.info(`Server running at http://${HOST}:${PORT}`);
+  startCleanupService();
 });
