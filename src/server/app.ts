@@ -24,7 +24,7 @@ app.get('/api/health', (_req, res) => {
 const clientDir = path.resolve('dist/client');
 if (fs.existsSync(clientDir)) {
   app.use(express.static(clientDir));
-  app.get('*', (_req, res) => {
+  app.get('{*path}', (_req, res) => {
     res.sendFile(path.join(clientDir, 'index.html'));
   });
   log.info('Serving static client files', { path: clientDir });
