@@ -85,7 +85,7 @@ Operations Claude must never execute, even if asked. The user must perform these
 |----------|----------|---------------|
 | Destructive filesystem | `rm -rf`, `find -delete`, emptying trash | Data loss, irreversible |
 | Force push to shared branches | `git push --force origin main` | Destroys team history |
-| Production deployment | `[pm] deploy`, `vercel --prod`, `aws deploy` | Unreviewed production changes |
+| Production deployment | `[pm] deploy`, `aws deploy` | Unreviewed production changes |
 | Credential handling | Entering passwords, API keys, tokens into forms or files | Secret exposure |
 | Account operations | Creating/deleting accounts, changing access permissions | Identity and access risk |
 | Database destructive ops | `DROP TABLE`, `DELETE FROM` without WHERE, `TRUNCATE` | Catastrophic data loss |
@@ -195,7 +195,7 @@ Add to `.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'BLOCKED_PATTERNS=\"rm -rf|git push --force|git push -f|sudo |DROP TABLE|TRUNCATE|DELETE FROM .* WHERE 1|chmod 777|vercel --prod\"; CMD=\"$CLAUDE_TOOL_INPUT\"; if echo \"$CMD\" | grep -qiE \"$BLOCKED_PATTERNS\"; then echo \"BLOCKED: This command matches a Tier 3 prohibited pattern.\" >&2; exit 2; fi'"
+            "command": "bash -c 'BLOCKED_PATTERNS=\"rm -rf|git push --force|git push -f|sudo |DROP TABLE|TRUNCATE|DELETE FROM .* WHERE 1|chmod 777\"; CMD=\"$CLAUDE_TOOL_INPUT\"; if echo \"$CMD\" | grep -qiE \"$BLOCKED_PATTERNS\"; then echo \"BLOCKED: This command matches a Tier 3 prohibited pattern.\" >&2; exit 2; fi'"
           }
         ]
       }

@@ -16,7 +16,6 @@ AI-powered personal assistant to help organise your personal life. Built with Cl
 | `docs/brand-voice-guide.md` | Guide to defining brand voice for AI outputs |
 | `docs/command-policy.md` | Three-tier command permission policy for Claude Code operations |
 | `.github/workflows/ci.yml` | CI pipeline — runs typecheck, lint, test, secret scan on every PR |
-| `.github/workflows/cd.yml` | CD pipeline — builds and deploys on merge to main (Vercel reference) |
 | `docs/templates/FEATURE-CLAUDE.md` | Per-feature boundary template — prevents cross-feature edits |
 | `docs/templates/logger-template.ts` | Structured logger factory — creates feature-scoped loggers |
 | `docs/templates/skill-template.md` | Starter file for custom skills |
@@ -31,10 +30,9 @@ AI-powered personal assistant to help organise your personal life. Built with Cl
 3. Fill in the `ARCHITECTURE.md` template (already present at project root)
 4. Copy `docs/templates/logger-template.ts` to `src/lib/logger.ts`
 5. Run `/project-setup` to scaffold additional artifacts (skills, evals, brand docs)
-6. Replace `[pm]` in `.github/workflows/ci.yml` and `cd.yml` with your package manager
+6. Replace `[pm]` in `.github/workflows/ci.yml` with your package manager
 7. GitHub: enable branch protection on `main` → Settings → Branches → require `ci` to pass
-8. GitHub (if deploying): add deploy secrets → Settings → Secrets and variables → Actions
-9. Start building — follow the Feature Workflow in `CLAUDE.md`
+8. Start building — follow the Feature Workflow in `CLAUDE.md`
 
 ## What the 5 Mandatory Rules Enforce
 
