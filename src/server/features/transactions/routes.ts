@@ -384,6 +384,71 @@ transactionRouter.post(
   },
 );
 
+// GET /api/transactions/export/csv — CSV export with optional date range
+transactionRouter.get('/transactions/export/csv', (req: Request, res: Response, next) => {
+  try {
+    const from = req.query.from as string | undefined;
+    const to = req.query.to as string | undefined;
+
+    const conditions: ReturnType<typeof eq>[] = [];
+    if (from) {
+      conditions.push(sql`${schema.transactions.date} >= ${from}`);
+    }
+    if (to) {
+      conditions.push(sql`${schema.transactions.date} <= ${to}`);
+    }
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const rows = db
+      .select({
+        date: schema.transactions.date,
+        description: schema.transactions.description,
+        amount: schema.transactions.amount,
+        type: schema.transactions.type,
+        merchant: schema.transactions.merchant,
+        isRecurring: schema.transactions.isRecurring,
+        categoryName: schema.categories.name,
+      })
+      .from(schema.transactions)
+      .leftJoin(schema.categories, eq(schema.transactions.categoryId, schema.categories.id))
+      .where(whereClause)
+      .orderBy(sql`${schema.transactions.date} ASC`)
+      .all();
+
+    const header = 'date,description,amount,type,merchant,category,is_recurring';
+    const lines = rows.map((r) => {
+      const escapeCsv = (val: string | null | undefined) => {
+        if (val == null) return '';
+        if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+          return `"${val.replace(/"/g, '""')}"`;
+        }
+        return val;
+      };
+      return [
+        r.date,
+        escapeCsv(r.description),
+        r.amount,
+        r.type,
+        escapeCsv(r.merchant),
+        escapeCsv(r.categoryName),
+        r.isRecurring ? 'true' : 'false',
+      ].join(',');
+    });
+
+    const csv = [header, ...lines].join('\n');
+    const today = new Date().toISOString().split('T')[0];
+
+    log.info('CSV export', { rowCount: rows.length, from, to });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=transactions-${today}.csv`);
+    res.send(csv);
+  } catch (error) {
+    log.error('CSV export failed', error instanceof Error ? error : new Error(String(error)));
+    next(error);
+  }
+});
+
 // POST /api/transactions/ai-categorise — AI-based (fire-and-forget)
 transactionRouter.post(
   '/transactions/ai-categorise',

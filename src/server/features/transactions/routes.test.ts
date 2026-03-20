@@ -232,6 +232,54 @@ describe('Transaction Routes', () => {
     });
   });
 
+  describe('GET /api/transactions/export/csv', () => {
+    it('returns CSV with headers when transactions exist', async () => {
+      const cat = seedCategory('Food');
+      const doc = seedDocument();
+      seedTransaction(doc.id, { date: '2026-01-10', description: 'WOOLWORTHS', amount: 42.5, type: 'debit', merchant: 'Woolworths', categoryId: cat.id });
+
+      const res = await request(app).get('/api/transactions/export/csv');
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toContain('text/csv');
+      expect(res.headers['content-disposition']).toContain('transactions-');
+
+      const lines = res.text.split('\n');
+      expect(lines[0]).toBe('date,description,amount,type,merchant,category,is_recurring');
+      expect(lines[1]).toContain('2026-01-10');
+      expect(lines[1]).toContain('WOOLWORTHS');
+      expect(lines[1]).toContain('Food');
+    });
+
+    it('returns only header when no transactions exist', async () => {
+      const res = await request(app).get('/api/transactions/export/csv');
+      expect(res.status).toBe(200);
+      const lines = res.text.trim().split('\n');
+      expect(lines).toHaveLength(1);
+      expect(lines[0]).toBe('date,description,amount,type,merchant,category,is_recurring');
+    });
+
+    it('filters by date range', async () => {
+      const doc = seedDocument();
+      seedTransaction(doc.id, { date: '2026-01-01', description: 'January' });
+      seedTransaction(doc.id, { date: '2026-03-01', description: 'March' });
+
+      const res = await request(app).get('/api/transactions/export/csv?from=2026-02-01&to=2026-04-01');
+      expect(res.status).toBe(200);
+      const lines = res.text.trim().split('\n');
+      expect(lines).toHaveLength(2); // header + 1 transaction
+      expect(lines[1]).toContain('March');
+    });
+
+    it('escapes CSV fields with commas', async () => {
+      const doc = seedDocument();
+      seedTransaction(doc.id, { description: 'Item, with comma' });
+
+      const res = await request(app).get('/api/transactions/export/csv');
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('"Item, with comma"');
+    });
+  });
+
   describe('POST /api/transactions/auto-categorise', () => {
     it('runs rule categorisation and returns stats', async () => {
       const cat = seedCategory('Transport');

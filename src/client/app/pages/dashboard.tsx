@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTransactionStats, useTransactions } from '../../features/transactions/hooks.js';
-import { useCurrency } from '../../features/dashboard/hooks.js';
+import { useCurrency } from '../../features/settings/index.js';
 import { DateRangePicker, getDefaultDateRange } from '../../shared/components/date-range-picker.js';
 import type { DateRange } from '../../shared/components/date-range-picker.js';
 import { SummaryCards } from '../../features/dashboard/components/summary-cards.js';

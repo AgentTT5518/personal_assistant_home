@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-20 (Phase 1E) | Updated by: Claude Code
+> Last updated: 2026-03-20 (Phase 1F) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -71,8 +71,9 @@ graph TB
 | Vision Service | `src/server/features/document-processor/vision.service.ts` | Claude Vision reprocessing for scanned PDFs | @anthropic-ai/sdk |
 | Cleanup Service | `src/server/features/document-processor/cleanup.service.ts` | Daily cleanup of expired upload files (30-day retention) | — |
 | Document Upload UI | `src/client/features/document-upload/` | Upload dropzone, document list/detail, AI settings panel | react-dropzone, @tanstack/react-query |
-| App Settings (Server) | `src/server/features/settings/` | Key-value app settings CRUD with currency validation | drizzle-orm, zod |
-| Dashboard (Client) | `src/client/features/dashboard/` | Financial overview: summary cards, category pie chart, monthly trend chart, recent transactions, date range filtering | recharts, @tanstack/react-query, lucide-react |
+| App Settings (Server) | `src/server/features/settings/` | Key-value app settings CRUD, DB stats, bulk data deletion | drizzle-orm, zod |
+| Settings (Client) | `src/client/features/settings/` | Settings page: currency selector, CSV export, data management (bulk delete, re-seed categories), DB stats/about | @tanstack/react-query, lucide-react |
+| Dashboard (Client) | `src/client/features/dashboard/` | Financial overview: summary cards, category pie chart, monthly trend chart, recent transactions, date range filtering (purely presentational — hooks live in settings feature) | recharts, @tanstack/react-query, lucide-react |
 | Currency Formatter | `src/client/shared/utils/format-currency.ts` | Shared `Intl.NumberFormat` wrapper with caching | — |
 | DateRangePicker | `src/client/shared/components/date-range-picker.tsx` | Shared date range selector with presets (This Month, Last 3/6 Months, This Year, All Time) and custom range | lucide-react |
 | Analysis (Server) | `src/server/features/analysis/` | AI spending insights generation, merchant aggregation, snapshot CRUD, retry on AI parse failure | drizzle-orm, uuid, zod, ai-router |
@@ -131,6 +132,10 @@ graph TB
 | DELETE | `/api/categories/rules/:id` | Delete category rule | No | Active |
 | GET | `/api/settings/app` | List all app settings as key-value pairs | No | Active |
 | PUT | `/api/settings/app/:key` | Update app setting (validates currency codes) | No | Active |
+| GET | `/api/settings/stats` | DB stats: document/transaction/category counts, DB size, app version | No | Active |
+| DELETE | `/api/data/all` | Bulk delete all transactions, account summaries, documents, and uploaded files (requires `{ confirm: true }`) | No | Active |
+| GET | `/api/transactions/export/csv` | CSV export with optional `?from=&to=` date range | No | Active |
+| POST | `/api/categories/re-seed` | Drop all categories and re-seed defaults (requires `{ confirm: true }`) | No | Active |
 | POST | `/api/analysis/generate` | Generate AI spending analysis for date range | No (rate limited) | Active |
 | GET | `/api/analysis/snapshots` | List past analysis snapshots (metadata + period via JSON_EXTRACT) | No | Active |
 | GET | `/api/analysis/snapshots/:id` | Get full snapshot with insights data | No | Active |
@@ -194,6 +199,7 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Phase 1C: Transactions | 2026-03-19 | Transaction browsing/filtering/search/pagination + two-tier categorisation (rule-based + AI Haiku) + category management (CRUD, hierarchical, rules) + bulk operations + auto-rule generation + stats dashboard + 14 new API endpoints | `src/server/features/transactions/`, `src/client/features/transactions/`, shared types, validation, validate.ts, app.ts, seed.ts, extraction/vision hooks |
 | Phase 1D: Dashboard | 2026-03-19 | Financial overview dashboard with Recharts (category pie chart, monthly trend bar chart) + configurable currency via app_settings table + date range filtering (presets + custom) + recent transactions list + shared formatCurrency utility + StatsSummary retrofit + 2 new API endpoints | `src/client/features/dashboard/`, `src/server/features/settings/`, `src/client/shared/utils/`, schema, seed, app.ts, dashboard.tsx, stats-summary.tsx |
 | Phase 1E: Analysis | 2026-03-20 | AI spending insights analysis page: backend service with merchant aggregation, system message in messages array, retry on AI parse failure, snapshot CRUD with JSON_EXTRACT for list period; frontend with generate panel, Markdown section cards (react-markdown), snapshot history; promoted DateRangePicker to shared components; currency selector on Settings page; 4 new API endpoints | `src/server/features/analysis/`, `src/client/features/analysis/`, `src/client/shared/components/`, shared types, app.ts, analysis.tsx, settings.tsx |
+| Phase 1F: Settings | 2026-03-20 | Settings page completion: promoted settings hooks/API from dashboard to new client settings feature module; extracted CurrencySelector component; CSV transaction export with date range filtering; data management (bulk delete all data with FK-ordered deletion, re-seed default categories with transaction nullification, re-run categorisation); DB stats endpoint (counts, DB size, app version); extracted reusable seedDefaultCategories function; 4 new API endpoints | `src/client/features/settings/`, `src/server/features/settings/routes.ts`, `src/server/features/transactions/routes.ts`, `src/server/features/transactions/category.routes.ts`, `src/server/lib/db/seed-categories.ts`, `src/server/lib/db/seed.ts`, `src/client/app/pages/settings.tsx`, `src/client/app/pages/dashboard.tsx`, `src/client/features/transactions/components/stats-summary.tsx` |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._

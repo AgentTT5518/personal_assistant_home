@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { eq, count, sql } from 'drizzle-orm';
+import { z } from 'zod';
 import { db, schema } from '../../lib/db/index.js';
 import { validateBody } from '../../shared/middleware/validate.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
@@ -10,6 +11,7 @@ import {
   createCategoryRuleSchema,
 } from '../../../shared/types/validation.js';
 import type { CategoryResponse, CategoryRuleResponse } from '../../../shared/types/index.js';
+import { seedDefaultCategories } from '../../lib/db/seed-categories.js';
 import { log } from './logger.js';
 
 function paramStr(value: string | string[]): string {
@@ -352,3 +354,34 @@ categoryRouter.delete('/categories/rules/:id', (req: Request, res: Response) => 
 
   res.status(204).end();
 });
+
+// POST /api/categories/re-seed — re-seed default categories
+const confirmSchema = z.object({ confirm: z.literal(true) });
+
+categoryRouter.post(
+  '/categories/re-seed',
+  validateBody(confirmSchema),
+  (_req: Request, res: Response) => {
+    log.info('Re-seeding default categories');
+
+    db.transaction((tx) => {
+      // Nullify category_id on all transactions (FK has no ON DELETE cascade)
+      tx.update(schema.transactions)
+        .set({ categoryId: null, updatedAt: new Date().toISOString() })
+        .run();
+
+      // Delete all rules then all categories
+      tx.delete(schema.categoryRules).run();
+      tx.delete(schema.categories).run();
+    });
+
+    // Re-seed defaults
+    seedDefaultCategories();
+
+    const seededCount = db.select({ count: count() }).from(schema.categories).get();
+
+    log.info('Re-seed complete', { categoriesSeeded: seededCount?.count ?? 0 });
+
+    res.json({ message: 'Default categories re-seeded', categoriesSeeded: seededCount?.count ?? 0 });
+  },
+);

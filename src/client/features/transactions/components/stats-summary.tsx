@@ -1,7 +1,7 @@
 import { Loader2, TrendingUp, TrendingDown, DollarSign, HelpCircle, Zap } from 'lucide-react';
 import { useTransactionStats, useAutoCategorise } from '../hooks.js';
 import { formatCurrency } from '../../../shared/utils/format-currency.js';
-import { useCurrency } from '../../dashboard/hooks.js';
+import { useCurrency } from '../../settings/hooks.js';
 
 interface StatsSummaryProps {
   dateFrom?: string;
