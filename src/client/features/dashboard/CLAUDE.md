@@ -7,7 +7,7 @@ Claude Code
 This feature owns all files within `src/client/features/dashboard/`.
 
 ## Description
-Client-side financial dashboard: summary cards, category breakdown chart, monthly trend chart, recent transactions list, and date range filtering.
+Client-side financial dashboard: summary cards, category breakdown chart, monthly trend chart, recent transactions list, and date range filtering. This feature is purely presentational — all settings hooks/API have been promoted to the `settings` feature module (Phase 1F).
 
 ## Boundary Rules
 **HARD BLOCK: Do NOT edit files outside this folder without explicit user approval.**
@@ -27,7 +27,7 @@ Client-side financial dashboard: summary cards, category breakdown chart, monthl
 ## Dependencies
 **Shared modules:** `@shared/types`, `src/client/shared/utils/format-currency`
 **External packages:** @tanstack/react-query, recharts, lucide-react
-**Other features (read-only):** transactions (useTransactionStats, useTransactions hooks)
+**Other features (read-only):** transactions (useTransactionStats, useTransactions hooks), settings (useCurrency hook)
 
 ## Safe to Edit (no approval needed)
 - `src/client/features/dashboard/**`

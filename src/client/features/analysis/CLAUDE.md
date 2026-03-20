@@ -27,7 +27,7 @@ Client-side AI spending analysis page: generate AI insights, view structured ana
 ## Dependencies
 **Shared modules:** `@shared/types`, `src/client/shared/components/date-range-picker`, `src/client/shared/utils/format-currency`
 **External packages:** @tanstack/react-query, react-markdown, lucide-react
-**Other features (read-only):** dashboard (useCurrency hook)
+**Other features (read-only):** settings (useCurrency hook)
 
 ## Safe to Edit (no approval needed)
 - `src/client/features/analysis/**`

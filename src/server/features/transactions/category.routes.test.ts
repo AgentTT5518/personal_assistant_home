@@ -237,4 +237,46 @@ describe('Category Routes', () => {
       expect(deleted).toBeUndefined();
     });
   });
+
+  describe('POST /api/categories/re-seed', () => {
+    it('rejects without confirm: true', async () => {
+      const res = await request(app)
+        .post('/api/categories/re-seed')
+        .send({});
+      expect(res.status).toBe(400);
+    });
+
+    it('drops all categories and re-seeds defaults', async () => {
+      // Create some custom categories
+      seedCategory({ name: 'Custom One' });
+      seedCategory({ name: 'Custom Two' });
+
+      const res = await request(app)
+        .post('/api/categories/re-seed')
+        .send({ confirm: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.categoriesSeeded).toBeGreaterThan(0);
+
+      // Custom categories should be gone, defaults should exist
+      const cats = db.select().from(schema.categories).all();
+      const names = cats.map((c) => c.name);
+      expect(names).not.toContain('Custom One');
+      expect(names).toContain('Income');
+      expect(names).toContain('Housing');
+    });
+
+    it('nullifies category_id on transactions before dropping categories', async () => {
+      const cat = seedCategory({ name: 'ToDelete' });
+      const doc = seedDocument();
+      const txn = seedTransaction(doc.id, cat.id);
+
+      await request(app)
+        .post('/api/categories/re-seed')
+        .send({ confirm: true });
+
+      const updated = db.select().from(schema.transactions).where(eq(schema.transactions.id, txn.id)).get();
+      expect(updated?.categoryId).toBeNull();
+    });
+  });
 });
