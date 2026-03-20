@@ -160,3 +160,30 @@ export interface AiSettingResponse {
   fallbackProvider: AIProviderType | null;
   fallbackModel: string | null;
 }
+
+export interface AnalysisSection {
+  title: string;
+  type: 'overview' | 'categories' | 'trends' | 'anomalies' | 'recommendations';
+  content: string;
+  highlights?: string[];
+  data?: Record<string, unknown>;
+}
+
+export interface AnalysisInsights {
+  period: { from: string; to: string };
+  currency: string;
+  summary: {
+    totalIncome: number;
+    totalExpenses: number;
+    netAmount: number;
+    transactionCount: number;
+  };
+  sections: AnalysisSection[];
+}
+
+export interface SnapshotMeta {
+  id: string;
+  snapshotType: string;
+  period: { from: string; to: string };
+  generatedAt: string;
+}

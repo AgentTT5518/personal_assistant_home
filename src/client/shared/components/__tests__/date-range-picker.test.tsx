@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { DateRangePicker, getDefaultDateRange } from '../components/date-range-picker.js';
+import { DateRangePicker, getDefaultDateRange } from '../date-range-picker.js';
 
 afterEach(cleanup);
 
