@@ -5,6 +5,7 @@ import { DocumentsPage } from './pages/documents';
 import { TransactionsPage } from './pages/transactions';
 import { AnalysisPage } from './pages/analysis';
 import { SettingsPage } from './pages/settings';
+import { BudgetsPage } from './pages/budgets';
 import { DocumentDetail } from '../features/document-upload/index.js';
 
 export function App() {
@@ -17,6 +18,7 @@ export function App() {
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="analysis" element={<AnalysisPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="budgets" element={<BudgetsPage />} />
       </Route>
     </Routes>
   );

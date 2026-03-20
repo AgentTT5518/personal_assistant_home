@@ -58,3 +58,4 @@ Server-side transaction management: filtering, searching, pagination, rule-based
 ## Cross-Boundary Edit Log
 | Date | File | Change | Approved By |
 |------|------|--------|-------------|
+| 2026-03-20 | `src/shared/types/index.ts` | Added `RecurringGroup` type for recurring detection endpoints | Phase 1 Polish plan pre-approval |

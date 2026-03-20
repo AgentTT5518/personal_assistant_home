@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Settings, Sparkles, Loader2 } from 'lucide-react';
+import { Settings, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import type { TransactionFilters } from '../../../shared/types/index.js';
 import { useTransactions, useTransactionStats, useAiCategorise } from './hooks.js';
 import { StatsSummary } from './components/stats-summary.js';
@@ -7,6 +7,8 @@ import { TransactionFiltersBar } from './components/transaction-filters.js';
 import { TransactionTable } from './components/transaction-table.js';
 import { BulkActionsBar } from './components/bulk-actions-bar.js';
 import { CategoryManager } from './components/category-manager.js';
+import { useDetectRecurring, useRecurringSummary, RecurringGroupPanel } from '../recurring/index.js';
+import { useCurrency } from '../settings/index.js';
 
 export function TransactionsPage() {
   const [filters, setFilters] = useState<TransactionFilters>({
@@ -29,6 +31,9 @@ export function TransactionsPage() {
   });
 
   const aiCategorise = useAiCategorise();
+  const detectRecurring = useDetectRecurring();
+  const { data: recurringSummary, isLoading: recurringLoading } = useRecurringSummary();
+  const currency = useCurrency();
 
   // Stop polling when uncategorised count stabilises
   useEffect(() => {
@@ -67,9 +72,9 @@ export function TransactionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-2xl font-bold text-gray-900">Transactions</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           {stats && stats.uncategorisedCount > 0 && (
             <button
               onClick={handleAiCategorise}
@@ -83,6 +88,17 @@ export function TransactionsPage() {
               )}
             </button>
           )}
+          <button
+            onClick={() => detectRecurring.mutate()}
+            disabled={detectRecurring.isPending}
+            className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-300 px-3 py-2 rounded-md hover:bg-gray-50 disabled:opacity-50"
+          >
+            {detectRecurring.isPending ? (
+              <><Loader2 className="animate-spin" size={14} /> Detecting...</>
+            ) : (
+              <><RefreshCw size={14} /> Detect Recurring</>
+            )}
+          </button>
           <button
             onClick={() => setShowCategoryManager(true)}
             className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-300 px-3 py-2 rounded-md hover:bg-gray-50"
@@ -103,6 +119,14 @@ export function TransactionsPage() {
         filters={filters}
         onChange={handleFiltersChange}
       />
+
+      {filters.isRecurring && (
+        <RecurringGroupPanel
+          groups={recurringSummary}
+          isLoading={recurringLoading}
+          currency={currency}
+        />
+      )}
 
       <TransactionTable
         data={data}

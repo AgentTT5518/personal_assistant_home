@@ -55,3 +55,4 @@ Client-side transaction browsing, filtering, search, category management UI, bul
 ## Cross-Boundary Edit Log
 | Date | File | Change | Approved By |
 |------|------|--------|-------------|
+| 2026-03-20 | `src/client/features/recurring/index.js` | Import `useDetectRecurring`, `useRecurringSummary`, `RecurringGroupPanel` into transactions-page.tsx | Phase 1 Polish plan pre-approval |

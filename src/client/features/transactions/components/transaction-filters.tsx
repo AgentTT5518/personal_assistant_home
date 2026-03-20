@@ -51,7 +51,7 @@ export function TransactionFiltersBar({ filters, onChange }: TransactionFiltersB
     <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 space-y-3">
       <div className="flex items-center gap-3 flex-wrap">
         {/* Search */}
-        <div className="relative flex-1 min-w-48">
+        <div className="relative flex-1 min-w-0 sm:min-w-48">
           <Search size={14} className="absolute left-3 top-2.5 text-gray-400" />
           <input
             type="text"
@@ -118,7 +118,7 @@ export function TransactionFiltersBar({ filters, onChange }: TransactionFiltersB
           className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
         />
 
-        <span className="text-gray-300">|</span>
+        <span className="hidden sm:inline text-gray-300">|</span>
 
         <div className="flex items-center gap-1 text-sm text-gray-500">
           <span>Amount:</span>

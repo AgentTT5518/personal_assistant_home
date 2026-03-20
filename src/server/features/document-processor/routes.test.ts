@@ -51,6 +51,12 @@ function insertTransaction(documentId: string) {
 }
 
 describe('Document routes', () => {
+  beforeEach(() => {
+    db.delete(schema.transactions).run();
+    db.delete(schema.accountSummaries).run();
+    db.delete(schema.documents).run();
+  });
+
   afterEach(() => {
     db.delete(schema.transactions).run();
     db.delete(schema.accountSummaries).run();

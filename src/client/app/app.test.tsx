@@ -14,9 +14,9 @@ describe('App', () => {
         </BrowserRouter>
       </QueryClientProvider>,
     );
-    expect(screen.getByText('Assistant Home')).toBeInTheDocument();
+    expect(screen.getAllByText('Assistant Home').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Documents')).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getAllByText('Documents').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
   });
 });

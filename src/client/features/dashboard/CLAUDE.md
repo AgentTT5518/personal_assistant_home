@@ -58,3 +58,4 @@ Client-side financial dashboard: summary cards, category breakdown chart, monthl
 | 2026-03-19 | `src/client/shared/utils/format-currency.ts` | Created shared currency formatter | Phase 1D plan pre-approval |
 | 2026-03-19 | `src/client/app/pages/dashboard.tsx` | Replace stub with full dashboard | Phase 1D plan pre-approval |
 | 2026-03-19 | `src/client/features/transactions/components/stats-summary.tsx` | Retrofit to use shared formatCurrency | Phase 1D plan pre-approval |
+| 2026-03-20 | `src/client/app/pages/dashboard.tsx` | Add pagination state and pass page/totalPages/onPageChange props to RecentTransactions | Phase 1 Polish plan pre-approval |
