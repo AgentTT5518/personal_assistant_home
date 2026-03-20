@@ -91,15 +91,16 @@ export function DocumentList() {
           <p className="text-sm text-gray-500">No documents yet — upload your first PDF above.</p>
         </div>
       ) : (
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <th className="px-4 py-3">Filename</th>
               <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Institution</th>
+              <th className="hidden sm:table-cell px-4 py-3">Institution</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Transactions</th>
-              <th className="px-4 py-3">Date</th>
+              <th className="hidden sm:table-cell px-4 py-3">Transactions</th>
+              <th className="hidden sm:table-cell px-4 py-3">Date</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -117,7 +118,7 @@ export function DocumentList() {
                 <td className="px-4 py-3 text-sm text-gray-600">
                   {DOC_TYPE_LABELS[doc.docType] ?? doc.docType}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-600">
                   {doc.institution ?? '—'}
                 </td>
                 <td className="px-4 py-3">
@@ -130,10 +131,10 @@ export function DocumentList() {
                     {doc.processingStatus}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-600">
                   {doc.transactionCount ?? 0}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-500">
                   {new Date(doc.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-3">
@@ -171,6 +172,7 @@ export function DocumentList() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

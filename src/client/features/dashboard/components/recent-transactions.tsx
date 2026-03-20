@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import type { TransactionResponse } from '../../../../shared/types/index.js';
 import { formatCurrency } from '../../../shared/utils/format-currency.js';
 
@@ -7,6 +7,9 @@ interface RecentTransactionsProps {
   transactions: TransactionResponse[] | undefined;
   isLoading: boolean;
   currency: string;
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -14,7 +17,7 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
 }
 
-export function RecentTransactions({ transactions, isLoading, currency }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions, isLoading, currency, page, totalPages, onPageChange }: RecentTransactionsProps) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -77,6 +80,27 @@ export function RecentTransactions({ transactions, isLoading, currency }: Recent
           </div>
         ))}
       </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100 text-xs text-gray-500">
+          <span>Page {page} of {totalPages}</span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onPageChange(page - 1)}
+              disabled={page <= 1}
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={() => onPageChange(page + 1)}
+              disabled={page >= totalPages}
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

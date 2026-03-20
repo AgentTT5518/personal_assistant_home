@@ -187,3 +187,40 @@ export interface SnapshotMeta {
   period: { from: string; to: string };
   generatedAt: string;
 }
+
+export interface RecurringGroup {
+  merchant: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
+  averageAmount: number;
+  frequency: string;
+  lastDate: string;
+  nextExpectedDate: string;
+  transactionCount: number;
+}
+
+export type BudgetPeriod = 'monthly' | 'weekly' | 'yearly';
+
+export interface BudgetResponse {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  categoryColor: string;
+  amount: number;
+  period: BudgetPeriod;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BudgetSummaryResponse {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  categoryColor: string;
+  budgetAmount: number;
+  period: BudgetPeriod;
+  spent: number;
+  remaining: number;
+  percentUsed: number;
+}

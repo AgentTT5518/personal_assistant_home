@@ -17,6 +17,7 @@ import type {
 } from '../../../shared/types/index.js';
 import { runRuleCategorisation } from './categorisation.service.js';
 import { aiCategoriseTransactions } from './ai-categorisation.service.js';
+import { detectRecurringTransactions, getRecurringSummary } from './recurring-detection.service.js';
 import { log } from './logger.js';
 
 function paramStr(value: string | string[]): string {
@@ -445,6 +446,31 @@ transactionRouter.get('/transactions/export/csv', (req: Request, res: Response, 
     res.send(csv);
   } catch (error) {
     log.error('CSV export failed', error instanceof Error ? error : new Error(String(error)));
+    next(error);
+  }
+});
+
+// POST /api/transactions/detect-recurring — run recurring detection algorithm
+transactionRouter.post('/transactions/detect-recurring', (_req: Request, res: Response, next) => {
+  try {
+    log.info('Running recurring transaction detection');
+    const groups = detectRecurringTransactions();
+    log.info('Recurring detection complete', { groupsFound: groups.length });
+    res.json({ groups, groupCount: groups.length });
+  } catch (error) {
+    log.error('Recurring detection failed', error instanceof Error ? error : new Error(String(error)));
+    next(error);
+  }
+});
+
+// GET /api/transactions/recurring-summary — grouped recurring transactions
+transactionRouter.get('/transactions/recurring-summary', (_req: Request, res: Response, next) => {
+  try {
+    log.info('Fetching recurring summary');
+    const groups = getRecurringSummary();
+    res.json(groups);
+  } catch (error) {
+    log.error('Recurring summary failed', error instanceof Error ? error : new Error(String(error)));
     next(error);
   }
 });

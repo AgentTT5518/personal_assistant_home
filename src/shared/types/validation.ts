@@ -92,6 +92,19 @@ export const generateAnalysisSchema = z.object({
   dateTo: z.string().date().optional(),
 });
 
+export const budgetPeriodSchema = z.enum(['monthly', 'weekly', 'yearly']);
+
+export const createBudgetSchema = z.object({
+  categoryId: z.string().uuid(),
+  amount: z.number().positive(),
+  period: budgetPeriodSchema.default('monthly'),
+});
+
+export const updateBudgetSchema = z.object({
+  amount: z.number().positive().optional(),
+  period: budgetPeriodSchema.optional(),
+});
+
 export const transactionFiltersSchema = z.object({
   search: z.string().optional(),
   categoryId: z.string().optional(),

@@ -46,21 +46,21 @@ function renderWithRouter(ui: React.ReactElement) {
 describe('RecentTransactions', () => {
   it('renders loading state', () => {
     renderWithRouter(
-      <RecentTransactions transactions={undefined} isLoading={true} currency="AUD" />,
+      <RecentTransactions transactions={undefined} isLoading={true} currency="AUD" page={1} totalPages={1} onPageChange={() => {}} />,
     );
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
   });
 
   it('renders empty state when no transactions', () => {
     renderWithRouter(
-      <RecentTransactions transactions={[]} isLoading={false} currency="AUD" />,
+      <RecentTransactions transactions={[]} isLoading={false} currency="AUD" page={1} totalPages={1} onPageChange={() => {}} />,
     );
     expect(screen.getByText('No transactions yet')).toBeInTheDocument();
   });
 
   it('renders transaction descriptions', () => {
     renderWithRouter(
-      <RecentTransactions transactions={mockTransactions} isLoading={false} currency="AUD" />,
+      <RecentTransactions transactions={mockTransactions} isLoading={false} currency="AUD" page={1} totalPages={1} onPageChange={() => {}} />,
     );
     expect(screen.getByText('WOOLWORTHS SYDNEY')).toBeInTheDocument();
     expect(screen.getByText('SALARY DEPOSIT')).toBeInTheDocument();
@@ -68,14 +68,14 @@ describe('RecentTransactions', () => {
 
   it('renders category badge', () => {
     renderWithRouter(
-      <RecentTransactions transactions={mockTransactions} isLoading={false} currency="AUD" />,
+      <RecentTransactions transactions={mockTransactions} isLoading={false} currency="AUD" page={1} totalPages={1} onPageChange={() => {}} />,
     );
     expect(screen.getByText('Groceries')).toBeInTheDocument();
   });
 
   it('has a link to transactions page', () => {
     renderWithRouter(
-      <RecentTransactions transactions={mockTransactions} isLoading={false} currency="AUD" />,
+      <RecentTransactions transactions={mockTransactions} isLoading={false} currency="AUD" page={1} totalPages={1} onPageChange={() => {}} />,
     );
     const link = screen.getByRole('link', { name: /view all/i });
     expect(link).toHaveAttribute('href', '/transactions');

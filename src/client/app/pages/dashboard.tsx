@@ -8,6 +8,8 @@ import { CategoryChart } from '../../features/dashboard/components/category-char
 import { MonthlyTrendChart } from '../../features/dashboard/components/monthly-trend-chart.js';
 import { RecentTransactions } from '../../features/dashboard/components/recent-transactions.js';
 import { EmptyState } from '../../features/dashboard/components/empty-state.js';
+import { BudgetProgress, useBudgetSummary } from '../../features/budgets/index.js';
+import { RecurringSummaryCard, useRecurringSummary } from '../../features/recurring/index.js';
 
 export function DashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
@@ -18,12 +20,17 @@ export function DashboardPage() {
     dateRange.dateTo,
   );
 
+  const [recentPage, setRecentPage] = useState(1);
+
   const { data: recentData, isLoading: recentLoading } = useTransactions({
     sortBy: 'date',
     sortOrder: 'desc',
-    page: 1,
+    page: recentPage,
     pageSize: 5,
   });
+
+  const { data: budgetSummary } = useBudgetSummary();
+  const { data: recurringSummary } = useRecurringSummary();
 
   const hasData = stats && stats.transactionCount > 0;
 
@@ -43,10 +50,24 @@ export function DashboardPage() {
             <MonthlyTrendChart byMonth={stats?.byMonth ?? []} currency={currency} />
           </div>
 
+          {((budgetSummary && budgetSummary.length > 0) || (recurringSummary && recurringSummary.length > 0)) && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {budgetSummary && budgetSummary.length > 0 && (
+                <BudgetProgress budgets={budgetSummary} currency={currency} />
+              )}
+              {recurringSummary && recurringSummary.length > 0 && (
+                <RecurringSummaryCard groups={recurringSummary} currency={currency} />
+              )}
+            </div>
+          )}
+
           <RecentTransactions
             transactions={recentData?.data}
             isLoading={recentLoading}
             currency={currency}
+            page={recentData?.page ?? 1}
+            totalPages={recentData?.totalPages ?? 1}
+            onPageChange={setRecentPage}
           />
         </>
       )}

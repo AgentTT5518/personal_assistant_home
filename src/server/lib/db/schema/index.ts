@@ -78,6 +78,15 @@ export const appSettings = sqliteTable('app_settings', {
   updatedAt: text('updated_at').notNull(),
 });
 
+export const budgets = sqliteTable('budgets', {
+  id: text('id').primaryKey(),
+  categoryId: text('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }).unique(),
+  amount: real('amount').notNull(),
+  period: text('period').notNull().default('monthly'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
 export const aiSettings = sqliteTable('ai_settings', {
   id: text('id').primaryKey(),
   taskType: text('task_type').notNull().unique(),

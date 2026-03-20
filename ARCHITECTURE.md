@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-20 (Phase 1F) | Updated by: Claude Code
+> Last updated: 2026-03-20 (Mobile Responsiveness) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -76,7 +76,12 @@ graph TB
 | Dashboard (Client) | `src/client/features/dashboard/` | Financial overview: summary cards, category pie chart, monthly trend chart, recent transactions, date range filtering (purely presentational — hooks live in settings feature) | recharts, @tanstack/react-query, lucide-react |
 | Currency Formatter | `src/client/shared/utils/format-currency.ts` | Shared `Intl.NumberFormat` wrapper with caching | — |
 | DateRangePicker | `src/client/shared/components/date-range-picker.tsx` | Shared date range selector with presets (This Month, Last 3/6 Months, This Year, All Time) and custom range | lucide-react |
+| ErrorBoundary | `src/client/shared/components/error-boundary.tsx` | Root-level React error boundary — catches uncaught errors, shows fallback UI with retry/reload, logs via client logger | lucide-react |
+| Budgets (Server) | `src/server/features/budgets/` | Budget CRUD with per-category spending limits, period-aware spend calculation (monthly/weekly/yearly) | drizzle-orm, uuid, zod |
+| Budgets (Client) | `src/client/features/budgets/` | Budget settings page (CRUD), dashboard progress widget with color-coded bars | @tanstack/react-query, lucide-react |
 | Analysis (Server) | `src/server/features/analysis/` | AI spending insights generation, merchant aggregation, snapshot CRUD, retry on AI parse failure | drizzle-orm, uuid, zod, ai-router |
+| Recurring Detection | `src/server/features/transactions/recurring-detection.service.ts` | Groups debit transactions by merchant, detects recurring patterns (3+ occurrences, consistent amounts/intervals), classifies frequency, marks isRecurring flag | drizzle-orm |
+| Recurring (Client) | `src/client/features/recurring/` | Dashboard summary card (estimated monthly recurring total with frequency normalization), grouped panel for transactions page | @tanstack/react-query, lucide-react |
 | Analysis (Client) | `src/client/features/analysis/` | Analysis page: generate panel, section cards with Markdown rendering, snapshot history | @tanstack/react-query, react-markdown, lucide-react |
 
 ## Data Model
@@ -93,6 +98,7 @@ graph TB
 | AnalysisSnapshot | `analysis_snapshots` | id, snapshot_type, data, generated_at | — |
 | AppSetting | `app_settings` | key (PK), value | — |
 | AISetting | `ai_settings` | id, task_type, provider, model, fallback_provider, fallback_model | — |
+| Budget | `budgets` | id, category_id (unique), amount, period | Belongs to Category (ON DELETE CASCADE) |
 
 ### Schema Notes
 - SQLite in WAL mode for concurrent read performance
@@ -140,6 +146,13 @@ graph TB
 | GET | `/api/analysis/snapshots` | List past analysis snapshots (metadata + period via JSON_EXTRACT) | No | Active |
 | GET | `/api/analysis/snapshots/:id` | Get full snapshot with insights data | No | Active |
 | DELETE | `/api/analysis/snapshots/:id` | Delete an analysis snapshot | No | Active |
+| GET | `/api/budgets` | List all budgets with category info | No | Active |
+| GET | `/api/budgets/summary` | Budgets with current period spend calculation | No | Active |
+| POST | `/api/budgets` | Create budget for a category | No | Active |
+| PUT | `/api/budgets/:id` | Update budget amount/period | No | Active |
+| DELETE | `/api/budgets/:id` | Delete a budget | No | Active |
+| POST | `/api/transactions/detect-recurring` | Run recurring detection algorithm, update isRecurring flags, return groups | No | Active |
+| GET | `/api/transactions/recurring-summary` | Grouped recurring transactions: merchant, avg amount, frequency, next expected date | No | Active |
 
 ## External Integrations
 
@@ -200,6 +213,11 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Phase 1D: Dashboard | 2026-03-19 | Financial overview dashboard with Recharts (category pie chart, monthly trend bar chart) + configurable currency via app_settings table + date range filtering (presets + custom) + recent transactions list + shared formatCurrency utility + StatsSummary retrofit + 2 new API endpoints | `src/client/features/dashboard/`, `src/server/features/settings/`, `src/client/shared/utils/`, schema, seed, app.ts, dashboard.tsx, stats-summary.tsx |
 | Phase 1E: Analysis | 2026-03-20 | AI spending insights analysis page: backend service with merchant aggregation, system message in messages array, retry on AI parse failure, snapshot CRUD with JSON_EXTRACT for list period; frontend with generate panel, Markdown section cards (react-markdown), snapshot history; promoted DateRangePicker to shared components; currency selector on Settings page; 4 new API endpoints | `src/server/features/analysis/`, `src/client/features/analysis/`, `src/client/shared/components/`, shared types, app.ts, analysis.tsx, settings.tsx |
 | Phase 1F: Settings | 2026-03-20 | Settings page completion: promoted settings hooks/API from dashboard to new client settings feature module; extracted CurrencySelector component; CSV transaction export with date range filtering; data management (bulk delete all data with FK-ordered deletion, re-seed default categories with transaction nullification, re-run categorisation); DB stats endpoint (counts, DB size, app version); extracted reusable seedDefaultCategories function; 4 new API endpoints | `src/client/features/settings/`, `src/server/features/settings/routes.ts`, `src/server/features/transactions/routes.ts`, `src/server/features/transactions/category.routes.ts`, `src/server/lib/db/seed-categories.ts`, `src/server/lib/db/seed.ts`, `src/client/app/pages/settings.tsx`, `src/client/app/pages/dashboard.tsx`, `src/client/features/transactions/components/stats-summary.tsx` |
+| Phase 1 Polish: Error Boundary | 2026-03-20 | Root-level React ErrorBoundary class component (React 19 requires class for getDerivedStateFromError); wraps app outside QueryClientProvider; fallback UI with retry/reload; logs via client logger; also fixed document-processor test isolation (added beforeEach cleanup) | `src/client/shared/components/error-boundary.tsx` (new), `src/client/main.tsx`, `src/server/features/document-processor/routes.test.ts` |
+| Phase 1 Polish: Dashboard Pagination | 2026-03-20 | Added pagination controls to dashboard recent transactions list; reuses existing server-side pagination (page/pageSize on GET /api/transactions); lightweight ChevronLeft/ChevronRight nav shown only when totalPages > 1 | `src/client/app/pages/dashboard.tsx`, `src/client/features/dashboard/components/recent-transactions.tsx` |
+| Budget Goals | 2026-03-20 | Separate `budgets` table (one-to-one with categories, ON DELETE CASCADE); period-aware spend calculation (monthly/weekly/yearly); budget settings on own `/budgets` page (not in sidebar nav, accessible via Settings); dashboard progress widget with color-coded bars (green/amber/red); 5 new API endpoints | `src/server/features/budgets/` (new), `src/client/features/budgets/` (new), schema, shared types/validation, app.tsx, dashboard.tsx, settings.tsx |
+| Recurring Detection | 2026-03-20 | Manual-trigger recurring detection: groups debits by merchant, requires 3+ occurrences with consistent amounts (10% tolerance) and intervals (±5 days), classifies frequency (weekly/biweekly/monthly/quarterly/yearly), marks isRecurring flag; client recurring module with dashboard summary card (frequency-normalized monthly total) and grouped panel (shown on transactions page when isRecurring filter active); 2 new API endpoints | `src/server/features/transactions/recurring-detection.service.ts` (new), `src/client/features/recurring/` (new), shared types, transactions-page.tsx, dashboard.tsx |
+| Mobile Responsiveness | 2026-03-20 | Collapsible sidebar with hamburger menu for mobile (<lg breakpoint); overlay with backdrop, focus trap, Escape key close, aria-modal/aria-hidden accessibility; responsive main padding (p-4/p-6/p-8); 44px min touch targets on pagination; hidden merchant/source columns in transaction table on mobile; hidden institution/transactions/date columns in document table on mobile; responsive filter bar stacking; button wrapping on transactions page header | layout.tsx, transaction-table.tsx, transaction-filters.tsx, transactions-page.tsx, document-list.tsx, budget-settings.tsx, recent-transactions.tsx, date-range-picker.tsx, app.test.tsx |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._
