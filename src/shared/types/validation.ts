@@ -87,6 +87,11 @@ export const bulkCategoriseSchema = z.object({
   categoryId: z.string().uuid().nullable(),
 });
 
+export const generateAnalysisSchema = z.object({
+  dateFrom: z.string().date().optional(),
+  dateTo: z.string().date().optional(),
+});
+
 export const transactionFiltersSchema = z.object({
   search: z.string().optional(),
   categoryId: z.string().optional(),
