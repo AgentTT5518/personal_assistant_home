@@ -48,7 +48,9 @@ src/
   client/                  # React frontend (Vite)
     app/                   # Pages / routes (dashboard, documents, transactions, analysis, settings)
     features/              # Frontend feature modules (each has CLAUDE.md + logger)
-    shared/                # Cross-feature UI components
+    shared/                # Cross-feature UI utilities and components
+      components/            # Shared components (DateRangePicker, etc.)
+      utils/                 # Shared utilities (formatCurrency, etc.)
     lib/logger.ts          # Client logger
     main.tsx               # Entry point
     index.css              # Tailwind CSS 4 imports
