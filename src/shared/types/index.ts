@@ -88,6 +88,8 @@ export interface TransactionResponse {
   categoryName: string | null;
   categoryColor: string | null;
   documentFilename: string | null;
+  accountId: string | null;
+  accountName: string | null;
   createdAt: string;
 }
 
@@ -122,6 +124,7 @@ export interface TransactionFilters {
   amountMax?: number;
   documentId?: string;
   isRecurring?: boolean;
+  accountId?: string;
   sortBy?: 'date' | 'amount' | 'description';
   sortOrder?: 'asc' | 'desc';
   page?: number;
@@ -198,6 +201,32 @@ export interface RecurringGroup {
   lastDate: string;
   nextExpectedDate: string;
   transactionCount: number;
+}
+
+export type AccountType = 'checking' | 'savings' | 'credit_card' | 'investment';
+
+export interface AccountResponse {
+  id: string;
+  name: string;
+  type: AccountType;
+  institution: string | null;
+  currency: string;
+  currentBalance: number;
+  isActive: boolean;
+  transactionCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NetWorthResponse {
+  netWorth: number;
+  accounts: Array<{
+    id: string;
+    name: string;
+    type: AccountType;
+    balance: number;
+    effectiveBalance: number;
+  }>;
 }
 
 export type BudgetPeriod = 'monthly' | 'weekly' | 'yearly';

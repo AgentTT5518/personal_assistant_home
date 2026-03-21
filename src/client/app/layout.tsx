@@ -1,17 +1,111 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, ArrowLeftRight, BarChart3, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, ArrowLeftRight, BarChart3, Settings, Menu, X, ChevronDown, Wallet } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/documents', icon: FileText, label: 'Documents' },
-  { to: '/transactions', icon: ArrowLeftRight, label: 'Transactions' },
-  { to: '/analysis', icon: BarChart3, label: 'Analysis' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
+interface NavItem {
+  to: string;
+  icon: LucideIcon;
+  label: string;
+}
+
+interface NavSectionConfig {
+  label: string;
+  items: NavItem[];
+}
+
+const navSections: NavSectionConfig[] = [
+  {
+    label: 'Overview',
+    items: [
+      { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    ],
+  },
+  {
+    label: 'Data',
+    items: [
+      { to: '/documents', icon: FileText, label: 'Documents' },
+      { to: '/transactions', icon: ArrowLeftRight, label: 'Transactions' },
+    ],
+  },
+  {
+    label: 'Planning',
+    items: [
+      { to: '/accounts', icon: Wallet, label: 'Accounts' },
+      { to: '/budgets', icon: BarChart3, label: 'Budgets' },
+    ],
+  },
+  {
+    label: 'Insights',
+    items: [
+      { to: '/analysis', icon: BarChart3, label: 'Analysis' },
+    ],
+  },
 ];
+
+const COLLAPSED_KEY = 'nav-collapsed-sections';
+
+function getInitialCollapsed(): Record<string, boolean> {
+  try {
+    const stored = localStorage.getItem(COLLAPSED_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {
+    // ignore
+  }
+  return {};
+}
+
+function NavSection({
+  section,
+  collapsed,
+  onToggle,
+}: {
+  section: NavSectionConfig;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <li>
+      <button
+        onClick={onToggle}
+        className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors"
+        aria-expanded={!collapsed}
+      >
+        {section.label}
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${collapsed ? '-rotate-90' : ''}`}
+        />
+      </button>
+      {!collapsed && (
+        <ul className="mt-0.5 space-y-0.5">
+          {section.items.map(({ to, icon: Icon, label }) => (
+            <li key={to}>
+              <NavLink
+                to={to}
+                end={to === '/'}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  }`
+                }
+              >
+                <Icon size={20} />
+                {label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
 
 export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(getInitialCollapsed);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
@@ -19,6 +113,15 @@ export function Layout() {
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  // Persist collapsed state
+  useEffect(() => {
+    try {
+      localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsedSections));
+    } catch {
+      // ignore
+    }
+  }, [collapsedSections]);
 
   // Close on Escape
   useEffect(() => {
@@ -57,31 +160,40 @@ export function Layout() {
 
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
+  const toggleSection = useCallback((label: string) => {
+    setCollapsedSections((prev) => ({ ...prev, [label]: !prev[label] }));
+  }, []);
+
   const navContent = (
     <>
       <div className="p-6">
         <h1 className="text-xl font-bold text-gray-900">Assistant Home</h1>
       </div>
-      <ul className="flex-1 px-3 space-y-1">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <li key={to}>
-            <NavLink
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`
-              }
-            >
-              <Icon size={20} />
-              {label}
-            </NavLink>
-          </li>
+      <ul className="flex-1 px-3 space-y-3">
+        {navSections.map((section) => (
+          <NavSection
+            key={section.label}
+            section={section}
+            collapsed={!!collapsedSections[section.label]}
+            onToggle={() => toggleSection(section.label)}
+          />
         ))}
       </ul>
+      <div className="px-3 pb-4">
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+              isActive
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`
+          }
+        >
+          <Settings size={20} />
+          Settings
+        </NavLink>
+      </div>
     </>
   );
 

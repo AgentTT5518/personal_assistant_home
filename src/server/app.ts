@@ -24,12 +24,14 @@ import { transactionRouter, categoryRouter } from './features/transactions/index
 import { settingsRouter } from './features/settings/index.js';
 import { analysisRouter } from './features/analysis/index.js';
 import { budgetRouter } from './features/budgets/index.js';
+import { accountRouter } from './features/accounts/index.js';
 app.use('/api', documentRouter);
 app.use('/api', transactionRouter);
 app.use('/api', categoryRouter);
 app.use('/api', settingsRouter);
 app.use('/api', analysisRouter);
 app.use('/api', budgetRouter);
+app.use('/api', accountRouter);
 
 // Serve static files in production (must be after all API routes)
 const clientDir = path.resolve('dist/client');

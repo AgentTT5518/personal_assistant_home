@@ -10,6 +10,7 @@ import { RecentTransactions } from '../../features/dashboard/components/recent-t
 import { EmptyState } from '../../features/dashboard/components/empty-state.js';
 import { BudgetProgress, useBudgetSummary } from '../../features/budgets/index.js';
 import { RecurringSummaryCard, useRecurringSummary } from '../../features/recurring/index.js';
+import { AccountOverview } from '../../features/accounts/index.js';
 
 export function DashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
@@ -48,6 +49,10 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <CategoryChart byCategory={stats?.byCategory ?? []} currency={currency} />
             <MonthlyTrendChart byMonth={stats?.byMonth ?? []} currency={currency} />
+          </div>
+
+          <div className="mb-6">
+            <AccountOverview currency={currency} />
           </div>
 
           {((budgetSummary && budgetSummary.length > 0) || (recurringSummary && recurringSummary.length > 0)) && (

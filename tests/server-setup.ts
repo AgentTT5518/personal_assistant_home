@@ -2,6 +2,18 @@ import { sqlite } from '../src/server/lib/db/index.js';
 
 // Create all tables if they don't exist — ensures CI works with a fresh DB
 sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS accounts (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    institution TEXT,
+    currency TEXT DEFAULT 'AUD',
+    current_balance REAL DEFAULT 0,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS documents (
     id TEXT PRIMARY KEY,
     filename TEXT NOT NULL,
@@ -13,6 +25,7 @@ sqlite.exec(`
     raw_extraction TEXT,
     extracted_text TEXT,
     file_path TEXT,
+    account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -38,6 +51,7 @@ sqlite.exec(`
     category_id TEXT REFERENCES categories(id),
     merchant TEXT,
     is_recurring INTEGER DEFAULT 0,
+    account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );

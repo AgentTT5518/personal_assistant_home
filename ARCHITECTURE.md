@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-20 (Mobile Responsiveness) | Updated by: Claude Code
+> Last updated: 2026-03-21 (Multi-Account Tracking) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -76,6 +76,9 @@ graph TB
 | Dashboard (Client) | `src/client/features/dashboard/` | Financial overview: summary cards, category pie chart, monthly trend chart, recent transactions, date range filtering (purely presentational — hooks live in settings feature) | recharts, @tanstack/react-query, lucide-react |
 | Currency Formatter | `src/client/shared/utils/format-currency.ts` | Shared `Intl.NumberFormat` wrapper with caching | — |
 | DateRangePicker | `src/client/shared/components/date-range-picker.tsx` | Shared date range selector with presets (This Month, Last 3/6 Months, This Year, All Time) and custom range | lucide-react |
+| Accounts (Server) | `src/server/features/accounts/` | Account CRUD, net-worth calculation, balance recalculation, transaction/document account assignment | drizzle-orm, uuid, zod |
+| Accounts (Client) | `src/client/features/accounts/` | Account list page, account form modal, AccountSelector dropdown, AccountOverview dashboard widget | @tanstack/react-query, lucide-react |
+| NavSection | `src/client/app/layout.tsx` | Collapsible sidebar navigation groups with localStorage persistence | lucide-react |
 | ErrorBoundary | `src/client/shared/components/error-boundary.tsx` | Root-level React error boundary — catches uncaught errors, shows fallback UI with retry/reload, logs via client logger | lucide-react |
 | Budgets (Server) | `src/server/features/budgets/` | Budget CRUD with per-category spending limits, period-aware spend calculation (monthly/weekly/yearly) | drizzle-orm, uuid, zod |
 | Budgets (Client) | `src/client/features/budgets/` | Budget settings page (CRUD), dashboard progress widget with color-coded bars | @tanstack/react-query, lucide-react |
@@ -99,6 +102,7 @@ graph TB
 | AppSetting | `app_settings` | key (PK), value | — |
 | AISetting | `ai_settings` | id, task_type, provider, model, fallback_provider, fallback_model | — |
 | Budget | `budgets` | id, category_id (unique), amount, period | Belongs to Category (ON DELETE CASCADE) |
+| Account | `accounts` | id, name, type, institution, currency, current_balance, is_active | Has many Transactions, Has many Documents |
 
 ### Schema Notes
 - SQLite in WAL mode for concurrent read performance
@@ -109,6 +113,9 @@ graph TB
 - `category_rules.is_ai_generated` tracks rules created by AI vs user-defined
 - `app_settings` is a key-value store — seeded with `currency: AUD`
 - `ai_settings.task_type` is unique — one config per task type
+- `accounts.currentBalance` is manual entry — not auto-updated on transaction changes
+- `accounts.type` constrains to checking/savings/credit_card/investment
+- `transactions.accountId` and `documents.accountId` are nullable FKs (ON DELETE SET NULL) — backward-compatible
 
 ## API Endpoints
 
@@ -153,6 +160,15 @@ graph TB
 | DELETE | `/api/budgets/:id` | Delete a budget | No | Active |
 | POST | `/api/transactions/detect-recurring` | Run recurring detection algorithm, update isRecurring flags, return groups | No | Active |
 | GET | `/api/transactions/recurring-summary` | Grouped recurring transactions: merchant, avg amount, frequency, next expected date | No | Active |
+| GET | `/api/accounts` | List accounts (optional ?isActive filter) | No | Active |
+| GET | `/api/accounts/net-worth` | Sum balances across active accounts (credit_card as negative) | No | Active |
+| GET | `/api/accounts/:id` | Get single account with transaction count | No | Active |
+| POST | `/api/accounts` | Create account | No | Active |
+| PUT | `/api/accounts/:id` | Update account | No | Active |
+| DELETE | `/api/accounts/:id` | Soft-delete; ?hard=true for hard delete | No | Active |
+| POST | `/api/accounts/:id/recalculate` | Recalculate balance from linked transactions | No | Active |
+| PUT | `/api/transactions/:id/account` | Assign transaction to account | No | Active |
+| POST | `/api/transactions/bulk-assign-account` | Bulk assign | No | Active |
 
 ## External Integrations
 
@@ -218,6 +234,7 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Budget Goals | 2026-03-20 | Separate `budgets` table (one-to-one with categories, ON DELETE CASCADE); period-aware spend calculation (monthly/weekly/yearly); budget settings on own `/budgets` page (not in sidebar nav, accessible via Settings); dashboard progress widget with color-coded bars (green/amber/red); 5 new API endpoints | `src/server/features/budgets/` (new), `src/client/features/budgets/` (new), schema, shared types/validation, app.tsx, dashboard.tsx, settings.tsx |
 | Recurring Detection | 2026-03-20 | Manual-trigger recurring detection: groups debits by merchant, requires 3+ occurrences with consistent amounts (10% tolerance) and intervals (±5 days), classifies frequency (weekly/biweekly/monthly/quarterly/yearly), marks isRecurring flag; client recurring module with dashboard summary card (frequency-normalized monthly total) and grouped panel (shown on transactions page when isRecurring filter active); 2 new API endpoints | `src/server/features/transactions/recurring-detection.service.ts` (new), `src/client/features/recurring/` (new), shared types, transactions-page.tsx, dashboard.tsx |
 | Mobile Responsiveness | 2026-03-20 | Collapsible sidebar with hamburger menu for mobile (<lg breakpoint); overlay with backdrop, focus trap, Escape key close, aria-modal/aria-hidden accessibility; responsive main padding (p-4/p-6/p-8); 44px min touch targets on pagination; hidden merchant/source columns in transaction table on mobile; hidden institution/transactions/date columns in document table on mobile; responsive filter bar stacking; button wrapping on transactions page header | layout.tsx, transaction-table.tsx, transaction-filters.tsx, transactions-page.tsx, document-list.tsx, budget-settings.tsx, recent-transactions.tsx, date-range-picker.tsx, app.test.tsx |
+| Multi-Account Tracking (Phase 2A) | 2026-03-21 | accounts table with nullable accountId FK on transactions/documents; sidebar redesign with NavSection collapsible groups; credit card balance stored positive, treated negative for net-worth; soft-delete by default, hard-delete only if zero linked transactions; currentBalance is manual with optional recalculate endpoint; 9 new API endpoints | `src/server/features/accounts/`, `src/client/features/accounts/`, `src/client/app/layout.tsx`, `src/shared/types/`, schema, app.ts, app.tsx, dashboard.tsx, transaction routes |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._
