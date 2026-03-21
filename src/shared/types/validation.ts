@@ -105,6 +105,34 @@ export const updateBudgetSchema = z.object({
   period: budgetPeriodSchema.optional(),
 });
 
+export const accountTypeSchema = z.enum(['checking', 'savings', 'credit_card', 'investment']);
+
+export const createAccountSchema = z.object({
+  name: z.string().min(1).max(200),
+  type: accountTypeSchema,
+  institution: z.string().max(200).nullable().optional(),
+  currency: z.string().min(3).max(3).default('AUD'),
+  currentBalance: z.number().default(0),
+});
+
+export const updateAccountSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  type: accountTypeSchema.optional(),
+  institution: z.string().max(200).nullable().optional(),
+  currency: z.string().min(3).max(3).optional(),
+  currentBalance: z.number().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const assignAccountSchema = z.object({
+  accountId: z.string().uuid().nullable(),
+});
+
+export const bulkAssignAccountSchema = z.object({
+  transactionIds: z.array(z.string().uuid()).min(1).max(500),
+  accountId: z.string().uuid().nullable(),
+});
+
 export const transactionFiltersSchema = z.object({
   search: z.string().optional(),
   categoryId: z.string().optional(),
@@ -115,6 +143,7 @@ export const transactionFiltersSchema = z.object({
   amountMax: z.coerce.number().optional(),
   documentId: z.string().uuid().optional(),
   isRecurring: z.coerce.boolean().optional(),
+  accountId: z.string().uuid().optional(),
   sortBy: z.enum(['date', 'amount', 'description']).default('date'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   page: z.coerce.number().int().min(1).default(1),

@@ -20,6 +20,8 @@ const mockTransactions: TransactionResponse[] = [
     categoryName: 'Groceries',
     categoryColor: '#ef4444',
     documentFilename: 'test.pdf',
+    accountId: null,
+    accountName: null,
     createdAt: '2026-03-15T00:00:00Z',
   },
   {
@@ -35,6 +37,8 @@ const mockTransactions: TransactionResponse[] = [
     categoryName: null,
     categoryColor: null,
     documentFilename: 'test.pdf',
+    accountId: null,
+    accountName: null,
     createdAt: '2026-03-14T00:00:00Z',
   },
 ];

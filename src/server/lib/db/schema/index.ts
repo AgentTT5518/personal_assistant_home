@@ -11,6 +11,7 @@ export const documents = sqliteTable('documents', {
   rawExtraction: text('raw_extraction'),
   extractedText: text('extracted_text'),
   filePath: text('file_path'),
+  accountId: text('account_id').references(() => accounts.id, { onDelete: 'set null' }),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
@@ -25,6 +26,7 @@ export const transactions = sqliteTable('transactions', {
   categoryId: text('category_id').references(() => categories.id),
   merchant: text('merchant'),
   isRecurring: integer('is_recurring', { mode: 'boolean' }).default(false),
+  accountId: text('account_id').references(() => accounts.id, { onDelete: 'set null' }),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
@@ -83,6 +85,18 @@ export const budgets = sqliteTable('budgets', {
   categoryId: text('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }).unique(),
   amount: real('amount').notNull(),
   period: text('period').notNull().default('monthly'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const accounts = sqliteTable('accounts', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  type: text('type').notNull(),
+  institution: text('institution'),
+  currency: text('currency').default('AUD'),
+  currentBalance: real('current_balance').default(0),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });

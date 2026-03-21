@@ -82,6 +82,10 @@ transactionRouter.get(
       conditions.push(eq(schema.transactions.isRecurring, filters.isRecurring));
     }
 
+    if (filters.accountId) {
+      conditions.push(eq(schema.transactions.accountId, filters.accountId));
+    }
+
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     // Sort
@@ -125,14 +129,17 @@ transactionRouter.get(
         merchant: schema.transactions.merchant,
         isRecurring: schema.transactions.isRecurring,
         categoryId: schema.transactions.categoryId,
+        accountId: schema.transactions.accountId,
         createdAt: schema.transactions.createdAt,
         categoryName: schema.categories.name,
         categoryColor: schema.categories.color,
         documentFilename: schema.documents.filename,
+        accountName: schema.accounts.name,
       })
       .from(schema.transactions)
       .leftJoin(schema.categories, eq(schema.transactions.categoryId, schema.categories.id))
       .leftJoin(schema.documents, eq(schema.transactions.documentId, schema.documents.id))
+      .leftJoin(schema.accounts, eq(schema.transactions.accountId, schema.accounts.id))
       .where(whereClause)
       .orderBy(orderExpr)
       .limit(pageSize)
@@ -152,6 +159,8 @@ transactionRouter.get(
       categoryName: t.categoryName ?? null,
       categoryColor: t.categoryColor ?? null,
       documentFilename: t.documentFilename ?? null,
+      accountId: t.accountId ?? null,
+      accountName: t.accountName ?? null,
       createdAt: t.createdAt,
     }));
 
@@ -300,14 +309,17 @@ transactionRouter.put(
         merchant: schema.transactions.merchant,
         isRecurring: schema.transactions.isRecurring,
         categoryId: schema.transactions.categoryId,
+        accountId: schema.transactions.accountId,
         createdAt: schema.transactions.createdAt,
         categoryName: schema.categories.name,
         categoryColor: schema.categories.color,
         documentFilename: schema.documents.filename,
+        accountName: schema.accounts.name,
       })
       .from(schema.transactions)
       .leftJoin(schema.categories, eq(schema.transactions.categoryId, schema.categories.id))
       .leftJoin(schema.documents, eq(schema.transactions.documentId, schema.documents.id))
+      .leftJoin(schema.accounts, eq(schema.transactions.accountId, schema.accounts.id))
       .where(eq(schema.transactions.id, id))
       .get()!;
 
@@ -324,6 +336,8 @@ transactionRouter.put(
       categoryName: updated.categoryName ?? null,
       categoryColor: updated.categoryColor ?? null,
       documentFilename: updated.documentFilename ?? null,
+      accountId: updated.accountId ?? null,
+      accountName: updated.accountName ?? null,
       createdAt: updated.createdAt,
     };
 

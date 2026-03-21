@@ -218,6 +218,8 @@ documentRouter.get('/documents/:id/transactions', (req, res) => {
     categoryName: null,
     categoryColor: null,
     documentFilename: null,
+    accountId: t.accountId ?? null,
+    accountName: null,
     createdAt: t.createdAt,
   }));
 
