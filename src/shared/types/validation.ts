@@ -133,6 +133,41 @@ export const bulkAssignAccountSchema = z.object({
   accountId: z.string().uuid().nullable(),
 });
 
+// --- Tags ---
+
+export const createTagSchema = z.object({
+  name: z.string().min(1).max(50),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#6b7280'),
+});
+
+export const updateTagSchema = z.object({
+  name: z.string().min(1).max(50).optional(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+});
+
+export const addTagsSchema = z.object({
+  tagIds: z.array(z.string().uuid()).min(1).max(50),
+});
+
+export const bulkTagSchema = z.object({
+  transactionIds: z.array(z.string().uuid()).min(1).max(500),
+  tagId: z.string().uuid(),
+});
+
+// --- Splits ---
+
+export const splitItemSchema = z.object({
+  categoryId: z.string().uuid().nullable(),
+  amount: z.number().positive(),
+  description: z.string().min(1).max(500),
+});
+
+export const createSplitsSchema = z.object({
+  splits: z.array(splitItemSchema).min(2).max(20),
+});
+
+// --- Transaction Filters ---
+
 export const transactionFiltersSchema = z.object({
   search: z.string().optional(),
   categoryId: z.string().optional(),
@@ -144,6 +179,10 @@ export const transactionFiltersSchema = z.object({
   documentId: z.string().uuid().optional(),
   isRecurring: z.coerce.boolean().optional(),
   accountId: z.string().uuid().optional(),
+  tagIds: z.preprocess(
+    (val) => (typeof val === 'string' ? val.split(',').filter(Boolean) : val),
+    z.array(z.string().uuid()).optional(),
+  ),
   sortBy: z.enum(['date', 'amount', 'description']).default('date'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   page: z.coerce.number().int().min(1).default(1),

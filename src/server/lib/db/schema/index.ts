@@ -1,4 +1,4 @@
-import { sqliteTable, text, real, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, real, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const documents = sqliteTable('documents', {
   id: text('id').primaryKey(),
@@ -26,6 +26,8 @@ export const transactions = sqliteTable('transactions', {
   categoryId: text('category_id').references(() => categories.id),
   merchant: text('merchant'),
   isRecurring: integer('is_recurring', { mode: 'boolean' }).default(false),
+  isSplit: integer('is_split', { mode: 'boolean' }).default(false),
+  previousCategoryId: text('previous_category_id'),
   accountId: text('account_id').references(() => accounts.id, { onDelete: 'set null' }),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
@@ -97,6 +99,31 @@ export const accounts = sqliteTable('accounts', {
   currency: text('currency').default('AUD'),
   currentBalance: real('current_balance').default(0),
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const tags = sqliteTable('tags', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  color: text('color').default('#6b7280'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const transactionTags = sqliteTable('transaction_tags', {
+  transactionId: text('transaction_id').notNull().references(() => transactions.id, { onDelete: 'cascade' }),
+  tagId: text('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
+}, (table) => [
+  uniqueIndex('transaction_tags_unique').on(table.transactionId, table.tagId),
+]);
+
+export const splitTransactions = sqliteTable('split_transactions', {
+  id: text('id').primaryKey(),
+  parentTransactionId: text('parent_transaction_id').notNull().references(() => transactions.id, { onDelete: 'cascade' }),
+  categoryId: text('category_id').references(() => categories.id, { onDelete: 'set null' }),
+  amount: real('amount').notNull(),
+  description: text('description').notNull(),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });

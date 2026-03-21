@@ -214,12 +214,14 @@ documentRouter.get('/documents/:id/transactions', (req, res) => {
     type: t.type as 'debit' | 'credit',
     merchant: t.merchant,
     isRecurring: t.isRecurring ?? false,
+    isSplit: t.isSplit ?? false,
     categoryId: t.categoryId,
     categoryName: null,
     categoryColor: null,
     documentFilename: null,
     accountId: t.accountId ?? null,
     accountName: null,
+    tags: [],
     createdAt: t.createdAt,
   }));
 

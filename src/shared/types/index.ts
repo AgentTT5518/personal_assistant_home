@@ -84,13 +84,21 @@ export interface TransactionResponse {
   type: 'debit' | 'credit';
   merchant: string | null;
   isRecurring: boolean;
+  isSplit: boolean;
   categoryId: string | null;
   categoryName: string | null;
   categoryColor: string | null;
   documentFilename: string | null;
   accountId: string | null;
   accountName: string | null;
+  tags: TagInfo[];
   createdAt: string;
+}
+
+export interface TagInfo {
+  id: string;
+  name: string;
+  color: string;
 }
 
 export interface CategoryResponse {
@@ -125,6 +133,7 @@ export interface TransactionFilters {
   documentId?: string;
   isRecurring?: boolean;
   accountId?: string;
+  tagIds?: string[];
   sortBy?: 'date' | 'amount' | 'description';
   sortOrder?: 'asc' | 'desc';
   page?: number;
@@ -227,6 +236,27 @@ export interface NetWorthResponse {
     balance: number;
     effectiveBalance: number;
   }>;
+}
+
+export interface TagResponse {
+  id: string;
+  name: string;
+  color: string;
+  usageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SplitTransactionResponse {
+  id: string;
+  parentTransactionId: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
+  amount: number;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type BudgetPeriod = 'monthly' | 'weekly' | 'yearly';

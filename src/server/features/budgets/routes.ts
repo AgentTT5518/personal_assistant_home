@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../../lib/db/index.js';
-import { budgets, categories, transactions } from '../../lib/db/schema/index.js';
+import { budgets, categories, transactions, splitTransactions } from '../../lib/db/schema/index.js';
 import { validateBody } from '../../shared/middleware/validate.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
 import { createBudgetSchema, updateBudgetSchema } from '../../../shared/types/validation.js';
@@ -103,12 +103,29 @@ budgetRouter.get('/budgets/summary', (_req, res, next) => {
     const result: BudgetSummaryResponse[] = rows.map((budget) => {
       const { from, to } = getPeriodDateRange(budget.period as BudgetPeriod);
 
-      const spentRow = db
+      // Unsplit transactions: categoryId matches AND isSplit = 0
+      const unsplitRow = db
         .select({ total: sql<number>`COALESCE(SUM(${transactions.amount}), 0)` })
         .from(transactions)
         .where(
           and(
             eq(transactions.categoryId, budget.categoryId),
+            eq(transactions.type, 'debit'),
+            sql`${transactions.isSplit} = 0`,
+            gte(transactions.date, from),
+            lte(transactions.date, to),
+          ),
+        )
+        .get();
+
+      // Split portions: split_transactions with matching categoryId, joined to parent for date range
+      const splitRow = db
+        .select({ total: sql<number>`COALESCE(SUM(${splitTransactions.amount}), 0)` })
+        .from(splitTransactions)
+        .innerJoin(transactions, eq(splitTransactions.parentTransactionId, transactions.id))
+        .where(
+          and(
+            eq(splitTransactions.categoryId, budget.categoryId),
             eq(transactions.type, 'debit'),
             gte(transactions.date, from),
             lte(transactions.date, to),
@@ -116,7 +133,7 @@ budgetRouter.get('/budgets/summary', (_req, res, next) => {
         )
         .get();
 
-      const spent = spentRow?.total ?? 0;
+      const spent = (unsplitRow?.total ?? 0) + (splitRow?.total ?? 0);
       const remaining = budget.amount - spent;
       const percentUsed = budget.amount > 0 ? Math.round((spent / budget.amount) * 100) : 0;
 

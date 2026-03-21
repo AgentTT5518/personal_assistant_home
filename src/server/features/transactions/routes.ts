@@ -24,6 +24,14 @@ function paramStr(value: string | string[]): string {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function parseTagJson(tagJson: string | null): Array<{ id: string; name: string; color: string }> {
+  if (!tagJson) return [];
+  return tagJson.split('||').map((entry) => {
+    const [id, name, color] = entry.split('::');
+    return { id, name, color: color ?? '#6b7280' };
+  });
+}
+
 export const transactionRouter = Router();
 
 // GET /api/transactions — list with filtering, sorting, pagination
@@ -86,6 +94,15 @@ transactionRouter.get(
       conditions.push(eq(schema.transactions.accountId, filters.accountId));
     }
 
+    if (filters.tagIds && filters.tagIds.length > 0) {
+      // Filter transactions that have ALL specified tags
+      for (const tagId of filters.tagIds) {
+        conditions.push(
+          sql`EXISTS (SELECT 1 FROM transaction_tags WHERE transaction_id = ${schema.transactions.id} AND tag_id = ${tagId})`,
+        );
+      }
+    }
+
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     // Sort
@@ -128,6 +145,7 @@ transactionRouter.get(
         type: schema.transactions.type,
         merchant: schema.transactions.merchant,
         isRecurring: schema.transactions.isRecurring,
+        isSplit: schema.transactions.isSplit,
         categoryId: schema.transactions.categoryId,
         accountId: schema.transactions.accountId,
         createdAt: schema.transactions.createdAt,
@@ -135,6 +153,7 @@ transactionRouter.get(
         categoryColor: schema.categories.color,
         documentFilename: schema.documents.filename,
         accountName: schema.accounts.name,
+        tagJson: sql<string | null>`(SELECT GROUP_CONCAT(t.id || '::' || t.name || '::' || COALESCE(t.color, '#6b7280'), '||') FROM transaction_tags tt JOIN tags t ON t.id = tt.tag_id WHERE tt.transaction_id = ${schema.transactions.id})`,
       })
       .from(schema.transactions)
       .leftJoin(schema.categories, eq(schema.transactions.categoryId, schema.categories.id))
@@ -155,12 +174,14 @@ transactionRouter.get(
       type: t.type as 'debit' | 'credit',
       merchant: t.merchant,
       isRecurring: t.isRecurring ?? false,
+      isSplit: t.isSplit ?? false,
       categoryId: t.categoryId,
       categoryName: t.categoryName ?? null,
       categoryColor: t.categoryColor ?? null,
       documentFilename: t.documentFilename ?? null,
       accountId: t.accountId ?? null,
       accountName: t.accountName ?? null,
+      tags: parseTagJson(t.tagJson),
       createdAt: t.createdAt,
     }));
 
@@ -269,13 +290,21 @@ transactionRouter.put(
     const { categoryId } = req.body as { categoryId: string | null };
 
     const existing = db
-      .select({ id: schema.transactions.id })
+      .select({
+        id: schema.transactions.id,
+        isSplit: schema.transactions.isSplit,
+      })
       .from(schema.transactions)
       .where(eq(schema.transactions.id, id))
       .get();
 
     if (!existing) {
       throw new AppError(404, 'NOT_FOUND', 'Transaction not found');
+    }
+
+    // If transaction is split, don't allow direct category change
+    if (existing.isSplit) {
+      throw new AppError(400, 'TRANSACTION_IS_SPLIT', 'Cannot change category of a split transaction. Remove splits first.');
     }
 
     // Validate category exists if not null
@@ -308,6 +337,7 @@ transactionRouter.put(
         type: schema.transactions.type,
         merchant: schema.transactions.merchant,
         isRecurring: schema.transactions.isRecurring,
+        isSplit: schema.transactions.isSplit,
         categoryId: schema.transactions.categoryId,
         accountId: schema.transactions.accountId,
         createdAt: schema.transactions.createdAt,
@@ -315,6 +345,7 @@ transactionRouter.put(
         categoryColor: schema.categories.color,
         documentFilename: schema.documents.filename,
         accountName: schema.accounts.name,
+        tagJson: sql<string | null>`(SELECT GROUP_CONCAT(t.id || '::' || t.name || '::' || COALESCE(t.color, '#6b7280'), '||') FROM transaction_tags tt JOIN tags t ON t.id = tt.tag_id WHERE tt.transaction_id = ${schema.transactions.id})`,
       })
       .from(schema.transactions)
       .leftJoin(schema.categories, eq(schema.transactions.categoryId, schema.categories.id))
@@ -332,12 +363,14 @@ transactionRouter.put(
       type: updated.type as 'debit' | 'credit',
       merchant: updated.merchant,
       isRecurring: updated.isRecurring ?? false,
+      isSplit: updated.isSplit ?? false,
       categoryId: updated.categoryId,
       categoryName: updated.categoryName ?? null,
       categoryColor: updated.categoryColor ?? null,
       documentFilename: updated.documentFilename ?? null,
       accountId: updated.accountId ?? null,
       accountName: updated.accountName ?? null,
+      tags: parseTagJson(updated.tagJson),
       createdAt: updated.createdAt,
     };
 

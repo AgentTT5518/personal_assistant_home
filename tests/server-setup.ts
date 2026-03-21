@@ -1,5 +1,13 @@
 import { sqlite } from '../src/server/lib/db/index.js';
 
+// Add new columns to existing tables if they don't exist (safe migration for dev DBs)
+try {
+  sqlite.exec('ALTER TABLE transactions ADD COLUMN is_split INTEGER DEFAULT 0');
+} catch { /* column already exists */ }
+try {
+  sqlite.exec('ALTER TABLE transactions ADD COLUMN previous_category_id TEXT');
+} catch { /* column already exists */ }
+
 // Create all tables if they don't exist — ensures CI works with a fresh DB
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS accounts (
@@ -51,6 +59,8 @@ sqlite.exec(`
     category_id TEXT REFERENCES categories(id),
     merchant TEXT,
     is_recurring INTEGER DEFAULT 0,
+    is_split INTEGER DEFAULT 0,
+    previous_category_id TEXT,
     account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
@@ -115,4 +125,29 @@ sqlite.exec(`
   );
 
   CREATE UNIQUE INDEX IF NOT EXISTS budgets_category_id_unique ON budgets(category_id);
+
+  CREATE TABLE IF NOT EXISTS tags (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    color TEXT DEFAULT '#6b7280',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS transaction_tags (
+    transaction_id TEXT NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
+    tag_id TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS transaction_tags_unique ON transaction_tags(transaction_id, tag_id);
+
+  CREATE TABLE IF NOT EXISTS split_transactions (
+    id TEXT PRIMARY KEY,
+    parent_transaction_id TEXT NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
+    category_id TEXT REFERENCES categories(id) ON DELETE SET NULL,
+    amount REAL NOT NULL,
+    description TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
