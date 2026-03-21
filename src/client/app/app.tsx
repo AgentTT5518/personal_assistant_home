@@ -8,6 +8,7 @@ import { SettingsPage } from './pages/settings';
 import { BudgetsPage } from './pages/budgets';
 import { AccountsPage } from './pages/accounts';
 import { DocumentDetail } from '../features/document-upload/index.js';
+import { ImportPage } from './pages/import';
 
 export function App() {
   return (
@@ -21,6 +22,7 @@ export function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="accounts" element={<AccountsPage />} />
         <Route path="budgets" element={<BudgetsPage />} />
+        <Route path="import" element={<ImportPage />} />
       </Route>
     </Routes>
   );

@@ -18,7 +18,8 @@ export const documents = sqliteTable('documents', {
 
 export const transactions = sqliteTable('transactions', {
   id: text('id').primaryKey(),
-  documentId: text('document_id').notNull().references(() => documents.id),
+  documentId: text('document_id').references(() => documents.id),
+  importSessionId: text('import_session_id').references(() => importSessions.id, { onDelete: 'set null' }),
   date: text('date').notNull(),
   description: text('description').notNull(),
   amount: real('amount').notNull(),
@@ -124,6 +125,21 @@ export const splitTransactions = sqliteTable('split_transactions', {
   categoryId: text('category_id').references(() => categories.id, { onDelete: 'set null' }),
   amount: real('amount').notNull(),
   description: text('description').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const importSessions = sqliteTable('import_sessions', {
+  id: text('id').primaryKey(),
+  filename: text('filename').notNull(),
+  fileType: text('file_type').notNull(),
+  accountId: text('account_id').references(() => accounts.id, { onDelete: 'set null' }),
+  columnMapping: text('column_mapping'),
+  totalRows: integer('total_rows').notNull().default(0),
+  importedRows: integer('imported_rows').notNull().default(0),
+  duplicateRows: integer('duplicate_rows').notNull().default(0),
+  status: text('status').notNull().default('pending'),
+  errorMessage: text('error_message'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });

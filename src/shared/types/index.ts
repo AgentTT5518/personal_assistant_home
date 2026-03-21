@@ -75,9 +75,56 @@ export interface DocumentResponse {
   hasFile: boolean;
 }
 
+export type ImportFileType = 'csv' | 'ofx' | 'qif';
+export type ImportStatus = 'pending' | 'mapped' | 'previewed' | 'completed' | 'failed';
+
+export interface ImportSessionResponse {
+  id: string;
+  filename: string;
+  fileType: ImportFileType;
+  accountId: string | null;
+  accountName: string | null;
+  totalRows: number;
+  importedRows: number;
+  duplicateRows: number;
+  status: ImportStatus;
+  errorMessage: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ColumnMapping {
+  date: string;
+  description: string;
+  amount: string;
+  type?: string;
+  debitAmount?: string;
+  creditAmount?: string;
+  merchant?: string;
+}
+
+export interface ImportPreviewRow {
+  rowIndex: number;
+  date: string;
+  description: string;
+  amount: number;
+  type: 'debit' | 'credit';
+  merchant: string | null;
+  isDuplicate: boolean;
+  duplicateKey: string;
+  selected: boolean;
+}
+
+export interface ImportUploadResponse {
+  session: ImportSessionResponse;
+  headers?: string[];
+  preview: ImportPreviewRow[];
+  needsMapping: boolean;
+}
+
 export interface TransactionResponse {
   id: string;
-  documentId: string;
+  documentId: string | null;
   date: string;
   description: string;
   amount: number;
@@ -91,6 +138,7 @@ export interface TransactionResponse {
   documentFilename: string | null;
   accountId: string | null;
   accountName: string | null;
+  importSessionId: string | null;
   tags: TagInfo[];
   createdAt: string;
 }

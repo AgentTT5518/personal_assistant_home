@@ -207,7 +207,7 @@ documentRouter.get('/documents/:id/transactions', (req, res) => {
 
   const response: TransactionResponse[] = txns.map((t) => ({
     id: t.id,
-    documentId: t.documentId,
+    documentId: t.documentId ?? null,
     date: t.date,
     description: t.description,
     amount: t.amount,
@@ -221,6 +221,7 @@ documentRouter.get('/documents/:id/transactions', (req, res) => {
     documentFilename: null,
     accountId: t.accountId ?? null,
     accountName: null,
+    importSessionId: t.importSessionId ?? null,
     tags: [],
     createdAt: t.createdAt,
   }));

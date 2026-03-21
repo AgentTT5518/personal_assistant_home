@@ -148,6 +148,7 @@ transactionRouter.get(
         isSplit: schema.transactions.isSplit,
         categoryId: schema.transactions.categoryId,
         accountId: schema.transactions.accountId,
+        importSessionId: schema.transactions.importSessionId,
         createdAt: schema.transactions.createdAt,
         categoryName: schema.categories.name,
         categoryColor: schema.categories.color,
@@ -167,7 +168,7 @@ transactionRouter.get(
 
     const data: TransactionResponse[] = txns.map((t) => ({
       id: t.id,
-      documentId: t.documentId,
+      documentId: t.documentId ?? null,
       date: t.date,
       description: t.description,
       amount: t.amount,
@@ -181,6 +182,7 @@ transactionRouter.get(
       documentFilename: t.documentFilename ?? null,
       accountId: t.accountId ?? null,
       accountName: t.accountName ?? null,
+      importSessionId: t.importSessionId ?? null,
       tags: parseTagJson(t.tagJson),
       createdAt: t.createdAt,
     }));
@@ -340,6 +342,7 @@ transactionRouter.put(
         isSplit: schema.transactions.isSplit,
         categoryId: schema.transactions.categoryId,
         accountId: schema.transactions.accountId,
+        importSessionId: schema.transactions.importSessionId,
         createdAt: schema.transactions.createdAt,
         categoryName: schema.categories.name,
         categoryColor: schema.categories.color,
@@ -356,7 +359,7 @@ transactionRouter.put(
 
     const response: TransactionResponse = {
       id: updated.id,
-      documentId: updated.documentId,
+      documentId: updated.documentId ?? null,
       date: updated.date,
       description: updated.description,
       amount: updated.amount,
@@ -370,6 +373,7 @@ transactionRouter.put(
       documentFilename: updated.documentFilename ?? null,
       accountId: updated.accountId ?? null,
       accountName: updated.accountName ?? null,
+      importSessionId: updated.importSessionId ?? null,
       tags: parseTagJson(updated.tagJson),
       createdAt: updated.createdAt,
     };
