@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-21 (Multi-Account Tracking) | Updated by: Claude Code
+> Last updated: 2026-03-21 (Tags / Split Transactions) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -85,6 +85,8 @@ graph TB
 | Analysis (Server) | `src/server/features/analysis/` | AI spending insights generation, merchant aggregation, snapshot CRUD, retry on AI parse failure | drizzle-orm, uuid, zod, ai-router |
 | Recurring Detection | `src/server/features/transactions/recurring-detection.service.ts` | Groups debit transactions by merchant, detects recurring patterns (3+ occurrences, consistent amounts/intervals), classifies frequency, marks isRecurring flag | drizzle-orm |
 | Recurring (Client) | `src/client/features/recurring/` | Dashboard summary card (estimated monthly recurring total with frequency normalization), grouped panel for transactions page | @tanstack/react-query, lucide-react |
+| Tags (Server) | `src/server/features/tags/` | Tag CRUD with usage counts, transaction-tag junction operations, split transaction CRUD with sum validation, budget-aware spend calculation | drizzle-orm, uuid, zod |
+| Tags (Client) | `src/client/features/tags/` | TagManager modal (CRUD with color picker), TagSelector multi-select, TagBadge display, SplitTransactionModal | @tanstack/react-query, lucide-react |
 | Analysis (Client) | `src/client/features/analysis/` | Analysis page: generate panel, section cards with Markdown rendering, snapshot history | @tanstack/react-query, react-markdown, lucide-react |
 
 ## Data Model
@@ -102,6 +104,9 @@ graph TB
 | AppSetting | `app_settings` | key (PK), value | — |
 | AISetting | `ai_settings` | id, task_type, provider, model, fallback_provider, fallback_model | — |
 | Budget | `budgets` | id, category_id (unique), amount, period | Belongs to Category (ON DELETE CASCADE) |
+| Tag | `tags` | id, name (unique), color | Has many Transactions (via transaction_tags) |
+| TransactionTag | `transaction_tags` | transactionId, tagId (composite unique) | Junction: Transaction ↔ Tag (ON DELETE CASCADE both) |
+| SplitTransaction | `split_transactions` | id, parentTransactionId, categoryId, amount, description | Belongs to Transaction (ON DELETE CASCADE), Belongs to Category (ON DELETE SET NULL) |
 | Account | `accounts` | id, name, type, institution, currency, current_balance, is_active | Has many Transactions, Has many Documents |
 
 ### Schema Notes
@@ -116,6 +121,8 @@ graph TB
 - `accounts.currentBalance` is manual entry — not auto-updated on transaction changes
 - `accounts.type` constrains to checking/savings/credit_card/investment
 - `transactions.accountId` and `documents.accountId` are nullable FKs (ON DELETE SET NULL) — backward-compatible
+- `transactions.isSplit` is an explicit flag for budget double-counting prevention; `previousCategoryId` stores original categoryId when split (restored on unsplit)
+- `split_transactions` amounts must sum to parent transaction amount; budget spend queries UNION splits with unsplit transactions
 
 ## API Endpoints
 
@@ -169,6 +176,16 @@ graph TB
 | POST | `/api/accounts/:id/recalculate` | Recalculate balance from linked transactions | No | Active |
 | PUT | `/api/transactions/:id/account` | Assign transaction to account | No | Active |
 | POST | `/api/transactions/bulk-assign-account` | Bulk assign | No | Active |
+| GET | `/api/tags` | List tags with usage counts | No | Active |
+| POST | `/api/tags` | Create tag | No | Active |
+| PUT | `/api/tags/:id` | Update tag | No | Active |
+| DELETE | `/api/tags/:id` | Delete tag (cascades junction rows) | No | Active |
+| POST | `/api/transactions/:id/tags` | Add tags to transaction | No | Active |
+| DELETE | `/api/transactions/:id/tags/:tagId` | Remove tag from transaction | No | Active |
+| POST | `/api/transactions/bulk-tag` | Bulk add tag to multiple transactions | No | Active |
+| GET | `/api/transactions/:id/splits` | Get splits for a transaction | No | Active |
+| POST | `/api/transactions/:id/splits` | Create/replace splits (validates sum = parent amount) | No | Active |
+| DELETE | `/api/transactions/:id/splits` | Remove all splits, restore categoryId | No | Active |
 
 ## External Integrations
 
@@ -235,6 +252,7 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Recurring Detection | 2026-03-20 | Manual-trigger recurring detection: groups debits by merchant, requires 3+ occurrences with consistent amounts (10% tolerance) and intervals (±5 days), classifies frequency (weekly/biweekly/monthly/quarterly/yearly), marks isRecurring flag; client recurring module with dashboard summary card (frequency-normalized monthly total) and grouped panel (shown on transactions page when isRecurring filter active); 2 new API endpoints | `src/server/features/transactions/recurring-detection.service.ts` (new), `src/client/features/recurring/` (new), shared types, transactions-page.tsx, dashboard.tsx |
 | Mobile Responsiveness | 2026-03-20 | Collapsible sidebar with hamburger menu for mobile (<lg breakpoint); overlay with backdrop, focus trap, Escape key close, aria-modal/aria-hidden accessibility; responsive main padding (p-4/p-6/p-8); 44px min touch targets on pagination; hidden merchant/source columns in transaction table on mobile; hidden institution/transactions/date columns in document table on mobile; responsive filter bar stacking; button wrapping on transactions page header | layout.tsx, transaction-table.tsx, transaction-filters.tsx, transactions-page.tsx, document-list.tsx, budget-settings.tsx, recent-transactions.tsx, date-range-picker.tsx, app.test.tsx |
 | Multi-Account Tracking (Phase 2A) | 2026-03-21 | accounts table with nullable accountId FK on transactions/documents; sidebar redesign with NavSection collapsible groups; credit card balance stored positive, treated negative for net-worth; soft-delete by default, hard-delete only if zero linked transactions; currentBalance is manual with optional recalculate endpoint; 9 new API endpoints | `src/server/features/accounts/`, `src/client/features/accounts/`, `src/client/app/layout.tsx`, `src/shared/types/`, schema, app.ts, app.tsx, dashboard.tsx, transaction routes |
+| Tags / Split Transactions (Phase 2D) | 2026-03-21 | 3 new tables (tags, transaction_tags, split_transactions); isSplit + previousCategoryId columns on transactions; tag CRUD with usage counts; transaction-tag junction with bulk operations; split validation (sum = parent); budget spend UNION with splits for double-counting prevention; category change blocked on split transactions; TagManager modal from Settings; SplitTransactionModal; 11 new API endpoints | `src/server/features/tags/`, `src/client/features/tags/`, shared types/validation, schema, budgets routes, transactions routes, settings page, app.ts, server-setup.ts |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._
