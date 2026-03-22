@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-21 (Tags / Split Transactions) | Updated by: Claude Code
+> Last updated: 2026-03-21 (Data Import CSV/OFX/QIF) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -88,6 +88,8 @@ graph TB
 | Tags (Server) | `src/server/features/tags/` | Tag CRUD with usage counts, transaction-tag junction operations, split transaction CRUD with sum validation, budget-aware spend calculation | drizzle-orm, uuid, zod |
 | Tags (Client) | `src/client/features/tags/` | TagManager modal (CRUD with color picker), TagSelector multi-select, TagBadge display, SplitTransactionModal | @tanstack/react-query, lucide-react |
 | Analysis (Client) | `src/client/features/analysis/` | Analysis page: generate panel, section cards with Markdown rendering, snapshot history | @tanstack/react-query, react-markdown, lucide-react |
+| Import (Server) | `src/server/features/import/` | CSV/OFX/QIF file parsing, import session management, column mapping, duplicate detection (reuses buildTransactionKey), batch transaction creation, undo | papaparse, multer, drizzle-orm, uuid, zod |
+| Import (Client) | `src/client/features/import/` | 4-step import wizard (upload, column mapping, preview with dedup, confirm), import history with undo | @tanstack/react-query, lucide-react |
 
 ## Data Model
 
@@ -96,7 +98,7 @@ graph TB
 | Entity | Storage | Key Fields | Relationships |
 |--------|---------|------------|---------------|
 | Document | `documents` | id, filename, doc_type, processing_status, processed_at, extracted_text, file_path | Has many Transactions, Has one AccountSummary |
-| Transaction | `transactions` | id, date, description, amount, type, merchant, is_recurring | Belongs to Document, Belongs to Category |
+| Transaction | `transactions` | id, date, description, amount, type, merchant, is_recurring | Belongs to Document (nullable), Belongs to Category, Belongs to ImportSession (nullable) |
 | Category | `categories` | id, name, parent_id, color, icon, is_default | Has many Transactions, Has many CategoryRules |
 | CategoryRule | `category_rules` | id, pattern, field, is_ai_generated, confidence | Belongs to Category |
 | AccountSummary | `account_summaries` | id, opening_balance, closing_balance, total_credits, total_debits | Belongs to Document |
@@ -107,6 +109,7 @@ graph TB
 | Tag | `tags` | id, name (unique), color | Has many Transactions (via transaction_tags) |
 | TransactionTag | `transaction_tags` | transactionId, tagId (composite unique) | Junction: Transaction ↔ Tag (ON DELETE CASCADE both) |
 | SplitTransaction | `split_transactions` | id, parentTransactionId, categoryId, amount, description | Belongs to Transaction (ON DELETE CASCADE), Belongs to Category (ON DELETE SET NULL) |
+| ImportSession | `import_sessions` | id, filename, file_type, status, total_rows, imported_rows, duplicate_rows | Has many Transactions, Belongs to Account (nullable) |
 | Account | `accounts` | id, name, type, institution, currency, current_balance, is_active | Has many Transactions, Has many Documents |
 
 ### Schema Notes
@@ -123,6 +126,9 @@ graph TB
 - `transactions.accountId` and `documents.accountId` are nullable FKs (ON DELETE SET NULL) — backward-compatible
 - `transactions.isSplit` is an explicit flag for budget double-counting prevention; `previousCategoryId` stores original categoryId when split (restored on unsplit)
 - `split_transactions` amounts must sum to parent transaction amount; budget spend queries UNION splits with unsplit transactions
+- `transactions.documentId` is nullable — imported transactions have no source document
+- `transactions.importSessionId` is nullable FK (ON DELETE SET NULL) — links imported transactions to their import session for undo
+- `import_sessions` tracks upload metadata, column mapping (JSON), row counts, and status (pending/mapped/previewed/completed/failed)
 
 ## API Endpoints
 
@@ -186,6 +192,14 @@ graph TB
 | GET | `/api/transactions/:id/splits` | Get splits for a transaction | No | Active |
 | POST | `/api/transactions/:id/splits` | Create/replace splits (validates sum = parent amount) | No | Active |
 | DELETE | `/api/transactions/:id/splits` | Remove all splits, restore categoryId | No | Active |
+
+| POST | `/api/import/upload` | Upload CSV/OFX/QIF file, create session, parse, return preview | No | Active |
+| PUT | `/api/import/:id/mapping` | Save column mapping (CSV), re-parse, return preview | No | Active |
+| GET | `/api/import/:id/preview` | Get parsed rows with duplicate flags | No | Active |
+| POST | `/api/import/:id/confirm` | Commit selected rows as transactions | No | Active |
+| DELETE | `/api/import/:id/undo` | Delete all transactions from import session | No | Active |
+| GET | `/api/import/sessions` | List import sessions | No | Active |
+| DELETE | `/api/import/:id` | Delete import session and its transactions | No | Active |
 
 ## External Integrations
 
@@ -253,6 +267,8 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Mobile Responsiveness | 2026-03-20 | Collapsible sidebar with hamburger menu for mobile (<lg breakpoint); overlay with backdrop, focus trap, Escape key close, aria-modal/aria-hidden accessibility; responsive main padding (p-4/p-6/p-8); 44px min touch targets on pagination; hidden merchant/source columns in transaction table on mobile; hidden institution/transactions/date columns in document table on mobile; responsive filter bar stacking; button wrapping on transactions page header | layout.tsx, transaction-table.tsx, transaction-filters.tsx, transactions-page.tsx, document-list.tsx, budget-settings.tsx, recent-transactions.tsx, date-range-picker.tsx, app.test.tsx |
 | Multi-Account Tracking (Phase 2A) | 2026-03-21 | accounts table with nullable accountId FK on transactions/documents; sidebar redesign with NavSection collapsible groups; credit card balance stored positive, treated negative for net-worth; soft-delete by default, hard-delete only if zero linked transactions; currentBalance is manual with optional recalculate endpoint; 9 new API endpoints | `src/server/features/accounts/`, `src/client/features/accounts/`, `src/client/app/layout.tsx`, `src/shared/types/`, schema, app.ts, app.tsx, dashboard.tsx, transaction routes |
 | Tags / Split Transactions (Phase 2D) | 2026-03-21 | 3 new tables (tags, transaction_tags, split_transactions); isSplit + previousCategoryId columns on transactions; tag CRUD with usage counts; transaction-tag junction with bulk operations; split validation (sum = parent); budget spend UNION with splits for double-counting prevention; category change blocked on split transactions; TagManager modal from Settings; SplitTransactionModal; 11 new API endpoints | `src/server/features/tags/`, `src/client/features/tags/`, shared types/validation, schema, budgets routes, transactions routes, settings page, app.ts, server-setup.ts |
+
+| Data Import CSV/OFX/QIF (Phase 2E) | 2026-03-21 | import_sessions table; transactions.documentId nullable + importSessionId FK; hand-written OFX/QIF parsers (no npm deps); papaparse for CSV with auto-detect column mapping; 4-step wizard (upload → mapping → preview with dedup → confirm); dedup reuses buildTransactionKey from document-processor; undo via session-linked batch delete; in-memory session cache for wizard state; 7 new API endpoints | `src/server/features/import/`, `src/client/features/import/`, schema, shared types/validation, app.ts, app.tsx, layout.tsx, settings.tsx, server-setup.ts |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._

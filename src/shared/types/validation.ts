@@ -166,6 +166,24 @@ export const createSplitsSchema = z.object({
   splits: z.array(splitItemSchema).min(2).max(20),
 });
 
+// --- Import ---
+
+export const importFileTypeSchema = z.enum(['csv', 'ofx', 'qif']);
+
+export const columnMappingSchema = z.object({
+  date: z.string().min(1),
+  description: z.string().min(1),
+  amount: z.string().min(1),
+  type: z.string().optional(),
+  debitAmount: z.string().optional(),
+  creditAmount: z.string().optional(),
+  merchant: z.string().optional(),
+});
+
+export const importConfirmSchema = z.object({
+  selectedRows: z.array(z.number().int().min(0)).min(1).max(10000),
+});
+
 // --- Transaction Filters ---
 
 export const transactionFiltersSchema = z.object({

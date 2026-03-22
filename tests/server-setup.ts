@@ -7,6 +7,9 @@ try {
 try {
   sqlite.exec('ALTER TABLE transactions ADD COLUMN previous_category_id TEXT');
 } catch { /* column already exists */ }
+try {
+  sqlite.exec('ALTER TABLE transactions ADD COLUMN import_session_id TEXT');
+} catch { /* column already exists */ }
 
 // Create all tables if they don't exist — ensures CI works with a fresh DB
 sqlite.exec(`
@@ -49,9 +52,25 @@ sqlite.exec(`
     updated_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS import_sessions (
+    id TEXT PRIMARY KEY,
+    filename TEXT NOT NULL,
+    file_type TEXT NOT NULL,
+    account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
+    column_mapping TEXT,
+    total_rows INTEGER NOT NULL DEFAULT 0,
+    imported_rows INTEGER NOT NULL DEFAULT 0,
+    duplicate_rows INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'pending',
+    error_message TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS transactions (
     id TEXT PRIMARY KEY,
-    document_id TEXT NOT NULL REFERENCES documents(id),
+    document_id TEXT REFERENCES documents(id),
+    import_session_id TEXT REFERENCES import_sessions(id) ON DELETE SET NULL,
     date TEXT NOT NULL,
     description TEXT NOT NULL,
     amount REAL NOT NULL,
