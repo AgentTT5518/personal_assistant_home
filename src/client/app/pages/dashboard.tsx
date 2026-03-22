@@ -12,6 +12,7 @@ import { BudgetProgress, useBudgetSummary } from '../../features/budgets/index.j
 import { RecurringSummaryCard, useRecurringSummary } from '../../features/recurring/index.js';
 import { AccountOverview } from '../../features/accounts/index.js';
 import { UpcomingBillsWidget, useUpcomingBills } from '../../features/bills/index.js';
+import { GoalProgressWidget, useActiveGoals } from '../../features/goals/index.js';
 
 export function DashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
@@ -34,6 +35,7 @@ export function DashboardPage() {
   const { data: budgetSummary } = useBudgetSummary();
   const { data: recurringSummary } = useRecurringSummary();
   const { data: upcomingBills } = useUpcomingBills();
+  const { data: activeGoals } = useActiveGoals();
 
   const hasData = stats && stats.transactionCount > 0;
 
@@ -57,10 +59,13 @@ export function DashboardPage() {
             <AccountOverview currency={currency} />
           </div>
 
-          {((budgetSummary && budgetSummary.length > 0) || (recurringSummary && recurringSummary.length > 0) || (upcomingBills && upcomingBills.length > 0)) && (
+          {((budgetSummary && budgetSummary.length > 0) || (recurringSummary && recurringSummary.length > 0) || (upcomingBills && upcomingBills.length > 0) || (activeGoals && activeGoals.length > 0)) && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {upcomingBills && upcomingBills.length > 0 && (
                 <UpcomingBillsWidget currency={currency} />
+              )}
+              {activeGoals && activeGoals.length > 0 && (
+                <GoalProgressWidget currency={currency} />
               )}
               {budgetSummary && budgetSummary.length > 0 && (
                 <BudgetProgress budgets={budgetSummary} currency={currency} />

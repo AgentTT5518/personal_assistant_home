@@ -331,6 +331,34 @@ export interface BillCalendarEntry {
   bills: BillResponse[];
 }
 
+export type GoalStatus = 'active' | 'completed' | 'cancelled';
+
+export interface GoalResponse {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline: string | null;
+  accountId: string | null;
+  accountName: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
+  status: GoalStatus;
+  contributions?: GoalContributionResponse[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoalContributionResponse {
+  id: string;
+  goalId: string;
+  amount: number;
+  note: string | null;
+  date: string;
+  createdAt: string;
+}
+
 export type BudgetPeriod = 'monthly' | 'weekly' | 'yearly';
 
 export interface BudgetResponse {

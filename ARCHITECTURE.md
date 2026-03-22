@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-22 (Upcoming Bills) | Updated by: Claude Code
+> Last updated: 2026-03-22 (Goal Tracking) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -92,6 +92,8 @@ graph TB
 | Import (Client) | `src/client/features/import/` | 4-step import wizard (upload, column mapping, preview with dedup, confirm), import history with undo | @tanstack/react-query, lucide-react |
 | Bills (Server) | `src/server/features/bills/` | Bill CRUD, mark-paid date advancement (frequency-based), calendar view, auto-populate from recurring detection | drizzle-orm, uuid, zod |
 | Bills (Client) | `src/client/features/bills/` | Bills page with list/calendar toggle, bill form modal, dashboard upcoming bills widget, overdue/due-soon highlighting, mark-paid | @tanstack/react-query, lucide-react |
+| Goals (Server) | `src/server/features/goals/` | Goal CRUD, contribution management, balance sync from linked accounts, status transitions (active/completed/cancelled) | drizzle-orm, uuid, zod |
+| Goals (Client) | `src/client/features/goals/` | Goals page with cards grid, goal form modal, contribute modal, dashboard progress widget (top 3 active goals) | @tanstack/react-query, lucide-react |
 
 ## Data Model
 
@@ -114,6 +116,8 @@ graph TB
 | ImportSession | `import_sessions` | id, filename, file_type, status, total_rows, imported_rows, duplicate_rows | Has many Transactions, Belongs to Account (nullable) |
 | Account | `accounts` | id, name, type, institution, currency, current_balance, is_active | Has many Transactions, Has many Documents |
 | Bill | `bills` | id, name, expectedAmount, frequency, nextDueDate, isActive, notes | Belongs to Account (nullable), Belongs to Category (nullable) |
+| Goal | `goals` | id, name, targetAmount, currentAmount, deadline, status | Belongs to Account (nullable), Belongs to Category (nullable), Has many GoalContributions |
+| GoalContribution | `goal_contributions` | id, goalId, amount, note, date | Belongs to Goal (ON DELETE CASCADE) |
 
 ### Schema Notes
 - SQLite in WAL mode for concurrent read performance
@@ -134,6 +138,10 @@ graph TB
 - `import_sessions` tracks upload metadata, column mapping (JSON), row counts, and status (pending/mapped/previewed/completed/failed)
 - `bills.nextDueDate` advances on mark-paid (no isPaid column — overdue = nextDueDate < today)
 - `bills.frequency` constrains to weekly/biweekly/monthly/quarterly/yearly
+- `goals.status` constrains to active/completed/cancelled — transitions managed via PUT
+- `goals.currentAmount` is updated by contributions and sync-balance — not auto-calculated
+- `goal_contributions` amounts sum to `goals.currentAmount`; sync-balance inserts balancing contributions to maintain this invariant
+- `goals.accountId` enables sync-balance; warns when multiple goals share an account
 
 ## API Endpoints
 
@@ -213,6 +221,13 @@ graph TB
 | PUT | `/api/bills/:id` | Update bill | No | Active |
 | DELETE | `/api/bills/:id` | Delete bill | No | Active |
 | POST | `/api/bills/:id/mark-paid` | Advance nextDueDate to next occurrence | No | Active |
+| GET | `/api/goals` | List goals (optional `?status=active`) | No | Active |
+| GET | `/api/goals/:id` | Get goal with contributions | No | Active |
+| POST | `/api/goals` | Create goal | No | Active |
+| PUT | `/api/goals/:id` | Update goal (name, target, deadline, account, category, status) | No | Active |
+| DELETE | `/api/goals/:id` | Delete goal (cascades contributions) | No | Active |
+| POST | `/api/goals/:id/contribute` | Add contribution, update currentAmount | No | Active |
+| POST | `/api/goals/:id/sync-balance` | Sync currentAmount from linked account balance | No | Active |
 
 ## External Integrations
 
@@ -283,6 +298,8 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 
 | Data Import CSV/OFX/QIF (Phase 2E) | 2026-03-21 | import_sessions table; transactions.documentId nullable + importSessionId FK; hand-written OFX/QIF parsers (no npm deps); papaparse for CSV with auto-detect column mapping; 4-step wizard (upload → mapping → preview with dedup → confirm); dedup reuses buildTransactionKey from document-processor; undo via session-linked batch delete; in-memory session cache for wizard state; 7 new API endpoints | `src/server/features/import/`, `src/client/features/import/`, schema, shared types/validation, app.ts, app.tsx, layout.tsx, settings.tsx, server-setup.ts |
 | Upcoming Bills (Phase 2B) | 2026-03-22 | bills table with frequency-based scheduling; mark-paid advances nextDueDate (no isPaid column); auto-populate from recurring detection with duplicate skip (name+10% amount tolerance); calendar endpoint groups by date; overdue/due-soon highlighting; list/calendar toggle view; dashboard upcoming bills widget (7 days); 8 new API endpoints | `src/server/features/bills/`, `src/client/features/bills/`, schema, shared types/validation, app.ts, app.tsx, layout.tsx, dashboard.tsx |
+
+| Goal Tracking (Phase 2F) | 2026-03-22 | goals and goal_contributions tables; contribution management with currentAmount tracking; sync-balance from linked accounts with multi-goal warning; status transitions (active/completed/cancelled); GoalCard with progress bar; GoalProgressWidget dashboard widget (top 3 active); 7 new API endpoints | `src/server/features/goals/`, `src/client/features/goals/`, schema, shared types/validation, app.ts, app.tsx, layout.tsx, dashboard.tsx |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._
