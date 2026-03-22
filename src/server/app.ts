@@ -27,6 +27,7 @@ import { budgetRouter } from './features/budgets/index.js';
 import { accountRouter } from './features/accounts/index.js';
 import { tagRouter } from './features/tags/index.js';
 import { importRouter } from './features/import/index.js';
+import { billRouter } from './features/bills/index.js';
 app.use('/api', documentRouter);
 app.use('/api', transactionRouter);
 app.use('/api', categoryRouter);
@@ -36,6 +37,7 @@ app.use('/api', budgetRouter);
 app.use('/api', accountRouter);
 app.use('/api', tagRouter);
 app.use('/api', importRouter);
+app.use('/api', billRouter);
 
 // Serve static files in production (must be after all API routes)
 const clientDir = path.resolve('dist/client');

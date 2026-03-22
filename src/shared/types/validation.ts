@@ -184,6 +184,31 @@ export const importConfirmSchema = z.object({
   selectedRows: z.array(z.number().int().min(0)).min(1).max(10000),
 });
 
+// --- Bills ---
+
+export const billFrequencySchema = z.enum(['weekly', 'biweekly', 'monthly', 'quarterly', 'yearly']);
+
+export const createBillSchema = z.object({
+  name: z.string().min(1).max(200),
+  accountId: z.string().uuid().nullable().optional(),
+  categoryId: z.string().uuid().nullable().optional(),
+  expectedAmount: z.number().positive(),
+  frequency: billFrequencySchema,
+  nextDueDate: z.string().date(),
+  notes: z.string().max(1000).nullable().optional(),
+});
+
+export const updateBillSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  accountId: z.string().uuid().nullable().optional(),
+  categoryId: z.string().uuid().nullable().optional(),
+  expectedAmount: z.number().positive().optional(),
+  frequency: billFrequencySchema.optional(),
+  nextDueDate: z.string().date().optional(),
+  isActive: z.boolean().optional(),
+  notes: z.string().max(1000).nullable().optional(),
+});
+
 // --- Transaction Filters ---
 
 export const transactionFiltersSchema = z.object({

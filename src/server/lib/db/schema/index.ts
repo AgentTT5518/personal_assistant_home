@@ -144,6 +144,20 @@ export const importSessions = sqliteTable('import_sessions', {
   updatedAt: text('updated_at').notNull(),
 });
 
+export const bills = sqliteTable('bills', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  accountId: text('account_id').references(() => accounts.id, { onDelete: 'set null' }),
+  categoryId: text('category_id').references(() => categories.id, { onDelete: 'set null' }),
+  expectedAmount: real('expected_amount').notNull(),
+  frequency: text('frequency').notNull(),
+  nextDueDate: text('next_due_date').notNull(),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  notes: text('notes'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
 export const aiSettings = sqliteTable('ai_settings', {
   id: text('id').primaryKey(),
   taskType: text('task_type').notNull().unique(),
