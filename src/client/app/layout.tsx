@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, ArrowLeftRight, BarChart3, Settings, Menu, X, ChevronDown, Wallet, Upload, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, FileText, ArrowLeftRight, BarChart3, Settings, Menu, X, ChevronDown, Wallet, Upload, CalendarDays, Target } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavItem {
@@ -35,6 +35,7 @@ const navSections: NavSectionConfig[] = [
       { to: '/accounts', icon: Wallet, label: 'Accounts' },
       { to: '/bills', icon: CalendarDays, label: 'Bills' },
       { to: '/budgets', icon: BarChart3, label: 'Budgets' },
+      { to: '/goals', icon: Target, label: 'Goals' },
     ],
   },
   {

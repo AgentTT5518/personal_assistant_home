@@ -209,6 +209,34 @@ export const updateBillSchema = z.object({
   notes: z.string().max(1000).nullable().optional(),
 });
 
+// --- Goals ---
+
+export const goalStatusSchema = z.enum(['active', 'completed', 'cancelled']);
+
+export const createGoalSchema = z.object({
+  name: z.string().min(1).max(200),
+  targetAmount: z.number().positive(),
+  deadline: z.string().date().nullable().optional(),
+  accountId: z.string().uuid().nullable().optional(),
+  categoryId: z.string().uuid().nullable().optional(),
+});
+
+export const updateGoalSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  targetAmount: z.number().positive().optional(),
+  currentAmount: z.number().min(0).optional(),
+  deadline: z.string().date().nullable().optional(),
+  accountId: z.string().uuid().nullable().optional(),
+  categoryId: z.string().uuid().nullable().optional(),
+  status: goalStatusSchema.optional(),
+});
+
+export const contributeSchema = z.object({
+  amount: z.number().positive(),
+  note: z.string().max(500).nullable().optional(),
+  date: z.string().date().optional(),
+});
+
 // --- Transaction Filters ---
 
 export const transactionFiltersSchema = z.object({

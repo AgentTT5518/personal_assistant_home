@@ -158,6 +158,28 @@ export const bills = sqliteTable('bills', {
   updatedAt: text('updated_at').notNull(),
 });
 
+export const goals = sqliteTable('goals', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  targetAmount: real('target_amount').notNull(),
+  currentAmount: real('current_amount').default(0),
+  deadline: text('deadline'),
+  accountId: text('account_id').references(() => accounts.id, { onDelete: 'set null' }),
+  categoryId: text('category_id').references(() => categories.id, { onDelete: 'set null' }),
+  status: text('status').notNull().default('active'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const goalContributions = sqliteTable('goal_contributions', {
+  id: text('id').primaryKey(),
+  goalId: text('goal_id').notNull().references(() => goals.id, { onDelete: 'cascade' }),
+  amount: real('amount').notNull(),
+  note: text('note'),
+  date: text('date').notNull(),
+  createdAt: text('created_at').notNull(),
+});
+
 export const aiSettings = sqliteTable('ai_settings', {
   id: text('id').primaryKey(),
   taskType: text('task_type').notNull().unique(),

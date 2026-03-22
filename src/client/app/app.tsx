@@ -10,6 +10,7 @@ import { AccountsPage } from './pages/accounts';
 import { DocumentDetail } from '../features/document-upload/index.js';
 import { ImportPage } from './pages/import';
 import { BillsPage } from './pages/bills';
+import { GoalsPage } from './pages/goals';
 
 export function App() {
   return (
@@ -25,6 +26,7 @@ export function App() {
         <Route path="budgets" element={<BudgetsPage />} />
         <Route path="import" element={<ImportPage />} />
         <Route path="bills" element={<BillsPage />} />
+        <Route path="goals" element={<GoalsPage />} />
       </Route>
     </Routes>
   );
