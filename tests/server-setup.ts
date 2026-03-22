@@ -169,4 +169,18 @@ sqlite.exec(`
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS bills (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
+    category_id TEXT REFERENCES categories(id) ON DELETE SET NULL,
+    expected_amount REAL NOT NULL,
+    frequency TEXT NOT NULL,
+    next_due_date TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    notes TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
