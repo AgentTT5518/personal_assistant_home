@@ -307,6 +307,30 @@ export interface SplitTransactionResponse {
   updatedAt: string;
 }
 
+export type BillFrequency = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly';
+
+export interface BillResponse {
+  id: string;
+  name: string;
+  accountId: string | null;
+  accountName: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryColor: string | null;
+  expectedAmount: number;
+  frequency: BillFrequency;
+  nextDueDate: string;
+  isActive: boolean;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BillCalendarEntry {
+  date: string;
+  bills: BillResponse[];
+}
+
 export type BudgetPeriod = 'monthly' | 'weekly' | 'yearly';
 
 export interface BudgetResponse {

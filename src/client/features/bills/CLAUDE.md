@@ -1,0 +1,42 @@
+# Feature: bills
+
+## Owner
+Claude Code
+
+## Scope
+This feature owns all files within `src/client/features/bills/`.
+
+## Description
+Client-side upcoming bills management: bills page with list/calendar toggle, bill form modal, dashboard upcoming bills widget, overdue/due-soon highlighting, and mark-paid functionality.
+
+## Boundary Rules
+**HARD BLOCK: Do NOT edit files outside this folder without explicit user approval.**
+
+- ONLY modify files within `src/client/features/bills/` freely
+- ASK before modifying: `src/shared/`, `src/app/`, other features, `package.json`, config files, schemas
+
+## Dependencies
+**Shared modules:** `@shared/types`, `src/client/shared/utils/format-currency`
+**External packages:** @tanstack/react-query, lucide-react
+**Other features (read-only):** accounts (AccountSelector), settings (useCurrency), transactions (categories for bill form)
+
+## Safe to Edit (no approval needed)
+- `src/client/features/bills/**`
+- This file
+
+## Always Requires Approval
+- `src/features/[OTHER]/*`, `src/shared/*`, `src/app/*`
+- `package.json`, `tsconfig.json`, `ARCHITECTURE.md`, `.env.example`
+
+## Progress
+- [x] CLAUDE.md created (this file)
+- [x] Feature logger created
+- [x] Implementation complete
+- [x] Cross-boundary edits logged below
+
+## Cross-Boundary Edit Log
+| Date | File | Change | Approved By |
+|------|------|--------|-------------|
+| 2026-03-22 | `src/client/app/layout.tsx` | Added "Bills" to Planning nav section with CalendarDays icon | Master plan pre-approval |
+| 2026-03-22 | `src/client/app/app.tsx` | Added `/bills` route | Master plan pre-approval |
+| 2026-03-22 | `src/client/app/pages/dashboard.tsx` | Added UpcomingBillsWidget | Master plan pre-approval |

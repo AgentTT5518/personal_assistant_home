@@ -9,6 +9,7 @@ import { BudgetsPage } from './pages/budgets';
 import { AccountsPage } from './pages/accounts';
 import { DocumentDetail } from '../features/document-upload/index.js';
 import { ImportPage } from './pages/import';
+import { BillsPage } from './pages/bills';
 
 export function App() {
   return (
@@ -23,6 +24,7 @@ export function App() {
         <Route path="accounts" element={<AccountsPage />} />
         <Route path="budgets" element={<BudgetsPage />} />
         <Route path="import" element={<ImportPage />} />
+        <Route path="bills" element={<BillsPage />} />
       </Route>
     </Routes>
   );
