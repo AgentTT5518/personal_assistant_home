@@ -192,6 +192,19 @@ sqlite.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS reports (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    report_type TEXT NOT NULL,
+    period_from TEXT NOT NULL,
+    period_to TEXT NOT NULL,
+    data TEXT NOT NULL,
+    pdf_path TEXT,
+    generated_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS bills (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,

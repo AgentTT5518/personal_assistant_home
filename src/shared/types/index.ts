@@ -359,6 +359,43 @@ export interface GoalContributionResponse {
   createdAt: string;
 }
 
+// --- Reports ---
+
+export type ReportType = 'monthly' | 'quarterly' | 'yearly' | 'custom';
+
+export interface ReportData {
+  summary: { income: number; expenses: number; net: number; transactionCount: number };
+  budgetVsActual: Array<{ categoryName: string; categoryColor: string; budgetAmount: number; actualSpent: number; percentUsed: number }>;
+  categoryBreakdown: Array<{ categoryName: string; categoryColor: string; amount: number; percentage: number }>;
+  topMerchants: Array<{ merchant: string; amount: number; transactionCount: number }>;
+  monthlyComparison?: Array<{ month: string; income: number; expenses: number }>;
+  accountBreakdown?: Array<{ accountName: string; type: string; income: number; expenses: number; net: number }>;
+}
+
+export interface ReportResponse {
+  id: string;
+  title: string;
+  reportType: ReportType;
+  periodFrom: string;
+  periodTo: string;
+  data: ReportData;
+  pdfPath: string | null;
+  generatedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReportListItem {
+  id: string;
+  title: string;
+  reportType: ReportType;
+  periodFrom: string;
+  periodTo: string;
+  hasPdf: boolean;
+  generatedAt: string;
+  createdAt: string;
+}
+
 export type BudgetPeriod = 'monthly' | 'weekly' | 'yearly';
 
 export interface BudgetResponse {
