@@ -237,6 +237,16 @@ export const contributeSchema = z.object({
   date: z.string().date().optional(),
 });
 
+// --- Reports ---
+
+export const reportTypeSchema = z.enum(['monthly', 'quarterly', 'yearly', 'custom']);
+
+export const generateReportSchema = z.object({
+  periodFrom: z.string().date(),
+  periodTo: z.string().date(),
+  reportType: reportTypeSchema,
+});
+
 // --- Transaction Filters ---
 
 export const transactionFiltersSchema = z.object({

@@ -1,6 +1,6 @@
 # Architecture — Personal Assistant Home
 
-> Last updated: 2026-03-22 (Goal Tracking) | Updated by: Claude Code
+> Last updated: 2026-03-23 (Monthly Reports) | Updated by: Claude Code
 
 ## System Overview
 Personal Assistant Home is a privacy-first, self-hosted web app that helps users organise financial, insurance, and health documents. It uses configurable AI providers (Claude API, Ollama, OpenAI-compatible) for document extraction, categorisation, and analysis. All data stays local — Express binds to 127.0.0.1 only.
@@ -94,6 +94,8 @@ graph TB
 | Bills (Client) | `src/client/features/bills/` | Bills page with list/calendar toggle, bill form modal, dashboard upcoming bills widget, overdue/due-soon highlighting, mark-paid | @tanstack/react-query, lucide-react |
 | Goals (Server) | `src/server/features/goals/` | Goal CRUD, contribution management, balance sync from linked accounts, status transitions (active/completed/cancelled) | drizzle-orm, uuid, zod |
 | Goals (Client) | `src/client/features/goals/` | Goals page with cards grid, goal form modal, contribute modal, dashboard progress widget (top 3 active goals) | @tanstack/react-query, lucide-react |
+| Reports (Server) | `src/server/features/reports/` | Report generation (aggregates transactions, budgets, categories, accounts), PDF export via pdf-lib, report CRUD | drizzle-orm, uuid, zod, pdf-lib |
+| Reports (Client) | `src/client/features/reports/` | Reports page with generate panel, report viewer with Recharts visualisations, report history with download/delete | @tanstack/react-query, recharts, lucide-react |
 
 ## Data Model
 
@@ -116,6 +118,7 @@ graph TB
 | ImportSession | `import_sessions` | id, filename, file_type, status, total_rows, imported_rows, duplicate_rows | Has many Transactions, Belongs to Account (nullable) |
 | Account | `accounts` | id, name, type, institution, currency, current_balance, is_active | Has many Transactions, Has many Documents |
 | Bill | `bills` | id, name, expectedAmount, frequency, nextDueDate, isActive, notes | Belongs to Account (nullable), Belongs to Category (nullable) |
+| Report | `reports` | id, title, reportType, periodFrom, periodTo, data (JSON), pdfPath, generatedAt | — |
 | Goal | `goals` | id, name, targetAmount, currentAmount, deadline, status | Belongs to Account (nullable), Belongs to Category (nullable), Has many GoalContributions |
 | GoalContribution | `goal_contributions` | id, goalId, amount, note, date | Belongs to Goal (ON DELETE CASCADE) |
 
@@ -138,6 +141,9 @@ graph TB
 - `import_sessions` tracks upload metadata, column mapping (JSON), row counts, and status (pending/mapped/previewed/completed/failed)
 - `bills.nextDueDate` advances on mark-paid (no isPaid column — overdue = nextDueDate < today)
 - `bills.frequency` constrains to weekly/biweekly/monthly/quarterly/yearly
+- `reports.data` stores JSON-serialised `ReportData` (summary, budgetVsActual, categoryBreakdown, topMerchants, optional monthlyComparison and accountBreakdown)
+- `reports.pdfPath` is nullable — populated on first PDF download, stored in `data/reports/`
+- `reports.reportType` constrains to monthly/quarterly/yearly/custom
 - `goals.status` constrains to active/completed/cancelled — transitions managed via PUT
 - `goals.currentAmount` is updated by contributions and sync-balance — not auto-calculated
 - `goal_contributions` amounts sum to `goals.currentAmount`; sync-balance inserts balancing contributions to maintain this invariant
@@ -221,6 +227,11 @@ graph TB
 | PUT | `/api/bills/:id` | Update bill | No | Active |
 | DELETE | `/api/bills/:id` | Delete bill | No | Active |
 | POST | `/api/bills/:id/mark-paid` | Advance nextDueDate to next occurrence | No | Active |
+| POST | `/api/reports/generate` | Generate report with aggregated data for date range | No | Active |
+| GET | `/api/reports` | List reports (metadata only) | No | Active |
+| GET | `/api/reports/:id` | Get full report with data | No | Active |
+| GET | `/api/reports/:id/pdf` | Download or generate PDF | No | Active |
+| DELETE | `/api/reports/:id` | Delete report and PDF file | No | Active |
 | GET | `/api/goals` | List goals (optional `?status=active`) | No | Active |
 | GET | `/api/goals/:id` | Get goal with contributions | No | Active |
 | POST | `/api/goals` | Create goal | No | Active |
@@ -300,6 +311,7 @@ Service Error -> try-catch -> Logger -> Retry (if applicable) -> Propagate
 | Upcoming Bills (Phase 2B) | 2026-03-22 | bills table with frequency-based scheduling; mark-paid advances nextDueDate (no isPaid column); auto-populate from recurring detection with duplicate skip (name+10% amount tolerance); calendar endpoint groups by date; overdue/due-soon highlighting; list/calendar toggle view; dashboard upcoming bills widget (7 days); 8 new API endpoints | `src/server/features/bills/`, `src/client/features/bills/`, schema, shared types/validation, app.ts, app.tsx, layout.tsx, dashboard.tsx |
 
 | Goal Tracking (Phase 2F) | 2026-03-22 | goals and goal_contributions tables; contribution management with currentAmount tracking; sync-balance from linked accounts with multi-goal warning; status transitions (active/completed/cancelled); GoalCard with progress bar; GoalProgressWidget dashboard widget (top 3 active); 7 new API endpoints | `src/server/features/goals/`, `src/client/features/goals/`, schema, shared types/validation, app.ts, app.tsx, layout.tsx, dashboard.tsx |
+| Monthly Reports (Phase 2C) | 2026-03-23 | reports table with JSON data storage; report generator aggregates transactions/budgets/categories/accounts into ReportData; PDF export via pdf-lib with PdfTableBuilder helper; report viewer with Recharts (pie chart, bar chart); report history with download/delete; 5 new API endpoints; final Phase 2 feature | `src/server/features/reports/`, `src/client/features/reports/`, schema, shared types/validation, app.ts, app.tsx, layout.tsx, server-setup.ts |
 
 ---
 _Maintained by Claude Code per CLAUDE.md Rule 4._

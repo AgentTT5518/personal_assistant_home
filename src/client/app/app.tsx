@@ -11,6 +11,7 @@ import { DocumentDetail } from '../features/document-upload/index.js';
 import { ImportPage } from './pages/import';
 import { BillsPage } from './pages/bills';
 import { GoalsPage } from './pages/goals';
+import { ReportsPage } from './pages/reports';
 
 export function App() {
   return (
@@ -27,6 +28,7 @@ export function App() {
         <Route path="import" element={<ImportPage />} />
         <Route path="bills" element={<BillsPage />} />
         <Route path="goals" element={<GoalsPage />} />
+        <Route path="reports" element={<ReportsPage />} />
       </Route>
     </Routes>
   );

@@ -180,6 +180,19 @@ export const goalContributions = sqliteTable('goal_contributions', {
   createdAt: text('created_at').notNull(),
 });
 
+export const reports = sqliteTable('reports', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  reportType: text('report_type').notNull(),
+  periodFrom: text('period_from').notNull(),
+  periodTo: text('period_to').notNull(),
+  data: text('data').notNull(),
+  pdfPath: text('pdf_path'),
+  generatedAt: text('generated_at').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
 export const aiSettings = sqliteTable('ai_settings', {
   id: text('id').primaryKey(),
   taskType: text('task_type').notNull().unique(),
