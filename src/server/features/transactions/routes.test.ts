@@ -46,10 +46,20 @@ function seedTransaction(documentId: string, overrides: Record<string, unknown> 
 
 describe('Transaction Routes', () => {
   beforeEach(() => {
+    sqlite.exec('DELETE FROM reports');
+    sqlite.exec('DELETE FROM goal_contributions');
+    sqlite.exec('DELETE FROM goals');
+    sqlite.exec('DELETE FROM split_transactions');
+    sqlite.exec('DELETE FROM transaction_tags');
+    sqlite.exec('DELETE FROM tags');
+    sqlite.exec('DELETE FROM budgets');
+    sqlite.exec('DELETE FROM bills');
     sqlite.exec('DELETE FROM category_rules');
     sqlite.exec('DELETE FROM transactions');
+    sqlite.exec('DELETE FROM import_sessions');
     sqlite.exec('DELETE FROM account_summaries');
     sqlite.exec('DELETE FROM documents');
+    sqlite.exec('DELETE FROM accounts');
     sqlite.exec('DELETE FROM categories');
   });
 

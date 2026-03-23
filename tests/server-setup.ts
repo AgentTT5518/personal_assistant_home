@@ -11,6 +11,39 @@ try {
   sqlite.exec('ALTER TABLE transactions ADD COLUMN import_session_id TEXT');
 } catch { /* column already exists */ }
 
+// Fix document_id nullability — SQLite requires table recreation to change NOT NULL constraint
+// Phase 2E made document_id nullable (imported transactions have no document)
+try {
+  const tableInfo = sqlite.prepare("PRAGMA table_info('transactions')").all() as Array<{ name: string; notnull: number }>;
+  const docIdCol = tableInfo.find((c) => c.name === 'document_id');
+  if (docIdCol && docIdCol.notnull === 1) {
+    sqlite.pragma('foreign_keys = OFF');
+    sqlite.exec(`
+      CREATE TABLE transactions_new (
+        id TEXT PRIMARY KEY,
+        document_id TEXT REFERENCES documents(id),
+        import_session_id TEXT REFERENCES import_sessions(id) ON DELETE SET NULL,
+        date TEXT NOT NULL,
+        description TEXT NOT NULL,
+        amount REAL NOT NULL,
+        type TEXT NOT NULL,
+        category_id TEXT REFERENCES categories(id),
+        merchant TEXT,
+        is_recurring INTEGER DEFAULT 0,
+        is_split INTEGER DEFAULT 0,
+        previous_category_id TEXT,
+        account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      INSERT INTO transactions_new SELECT * FROM transactions;
+      DROP TABLE transactions;
+      ALTER TABLE transactions_new RENAME TO transactions;
+    `);
+    sqlite.pragma('foreign_keys = ON');
+  }
+} catch { /* table doesn't exist yet or migration already applied */ }
+
 // Create all tables if they don't exist — ensures CI works with a fresh DB
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS accounts (
