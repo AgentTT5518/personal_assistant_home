@@ -53,8 +53,9 @@ export function GoalCard({ goal, currency, onEdit, onDelete, onContribute, onSyn
           {goal.status === 'active' && (
             <button
               onClick={() => onContribute(goal)}
-              className="p-1 text-gray-400 hover:text-green-600"
+              className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
               title="Add contribution"
+              aria-label="Add contribution"
             >
               <Plus size={14} />
             </button>
@@ -62,23 +63,26 @@ export function GoalCard({ goal, currency, onEdit, onDelete, onContribute, onSyn
           {goal.status === 'active' && goal.accountId && onSyncBalance && (
             <button
               onClick={() => onSyncBalance(goal.id)}
-              className="p-1 text-gray-400 hover:text-blue-600"
+              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
               title="Sync from account balance"
+              aria-label="Sync from account balance"
             >
               <RefreshCw size={14} />
             </button>
           )}
           <button
             onClick={() => onEdit(goal)}
-            className="p-1 text-gray-400 hover:text-blue-600"
+            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
             title="Edit goal"
+            aria-label="Edit goal"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={() => onDelete(goal.id)}
-            className="p-1 text-gray-400 hover:text-red-600"
+            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
             title="Delete goal"
+            aria-label="Delete goal"
           >
             <Trash2 size={14} />
           </button>

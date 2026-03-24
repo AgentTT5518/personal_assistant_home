@@ -111,6 +111,7 @@ export function BillsList() {
                     disabled={markPaid.isPending}
                     className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Mark as paid"
+                    aria-label="Mark as paid"
                   >
                     <Check size={16} />
                   </button>
@@ -118,6 +119,7 @@ export function BillsList() {
                     onClick={() => { setEditingBill(bill); setShowForm(true); }}
                     className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Edit"
+                    aria-label="Edit"
                   >
                     <Pencil size={14} />
                   </button>
@@ -126,6 +128,7 @@ export function BillsList() {
                     disabled={deleteBill.isPending}
                     className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Delete"
+                    aria-label="Delete"
                   >
                     <Trash2 size={14} />
                   </button>

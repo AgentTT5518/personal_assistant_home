@@ -79,8 +79,9 @@ export function ReportHistory({ onSelect, selectedId }: ReportHistoryProps) {
                   handleDownload(report);
                 }}
                 disabled={downloadingId === report.id}
-                className="p-1.5 text-gray-400 hover:text-green-600 transition-colors"
+                className="p-1.5 text-gray-400 hover:text-green-600 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                 title="Download PDF"
+                aria-label="Download PDF"
               >
                 {downloadingId === report.id ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -94,8 +95,9 @@ export function ReportHistory({ onSelect, selectedId }: ReportHistoryProps) {
                   handleDelete(report.id);
                 }}
                 disabled={deleteReport.isPending}
-                className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                className="p-1.5 text-gray-400 hover:text-red-600 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                 title="Delete report"
+                aria-label="Delete report"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
