@@ -60,7 +60,7 @@ export function ImportPreview({ rows, onConfirm, isLoading }: ImportPreviewProps
             <thead className="bg-gray-50 sticky top-0">
               <tr>
                 <th className="px-3 py-2 text-left w-10">
-                  <button onClick={toggleAll} className="text-gray-500 hover:text-gray-700">
+                  <button onClick={toggleAll} className="text-gray-500 hover:text-gray-700" aria-label="Toggle all rows">
                     {selection.size === rows.length ? (
                       <CheckSquare size={16} />
                     ) : (
@@ -71,8 +71,8 @@ export function ImportPreview({ rows, onConfirm, isLoading }: ImportPreviewProps
                 <th className="px-3 py-2 text-left text-gray-600 font-medium">Date</th>
                 <th className="px-3 py-2 text-left text-gray-600 font-medium">Description</th>
                 <th className="px-3 py-2 text-right text-gray-600 font-medium">Amount</th>
-                <th className="px-3 py-2 text-left text-gray-600 font-medium">Type</th>
-                <th className="px-3 py-2 text-left text-gray-600 font-medium">Status</th>
+                <th className="px-3 py-2 text-left text-gray-600 font-medium hidden md:table-cell">Type</th>
+                <th className="px-3 py-2 text-left text-gray-600 font-medium hidden md:table-cell">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -87,6 +87,7 @@ export function ImportPreview({ rows, onConfirm, isLoading }: ImportPreviewProps
                     <button
                       onClick={() => toggleRow(row.rowIndex)}
                       className="text-gray-500 hover:text-gray-700"
+                      aria-label="Toggle row"
                     >
                       {selection.has(row.rowIndex) ? (
                         <CheckSquare size={16} className="text-blue-600" />
@@ -100,7 +101,7 @@ export function ImportPreview({ rows, onConfirm, isLoading }: ImportPreviewProps
                   <td className="px-3 py-2 text-right whitespace-nowrap">
                     {row.amount.toFixed(2)}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2 hidden md:table-cell">
                     <span
                       className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
                         row.type === 'credit'
@@ -111,7 +112,7 @@ export function ImportPreview({ rows, onConfirm, isLoading }: ImportPreviewProps
                       {row.type}
                     </span>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2 hidden md:table-cell">
                     {row.isDuplicate && (
                       <span className="inline-flex items-center gap-1 text-xs text-amber-600">
                         <AlertTriangle size={12} />
