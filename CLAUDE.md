@@ -9,7 +9,7 @@
 - [ ] Add project-specific code conventions (fonts, colors, patterns)
 - [x] Define SECRET_SCAN_PATTERNS for your API keys
 - [x] Verify `.gitignore` includes `.env*` and `!.env.example`
-- [ ] Copy `docs/templates/logger-template.ts` to `src/lib/logger.ts`
+- [x] Copy `docs/templates/logger-template.ts` to `src/lib/logger.ts` — *done as `src/client/lib/logger.ts` + `src/server/lib/logger.ts`*
 - [x] Create ARCHITECTURE.md from template at project root
 - [ ] Run `/project-setup` to scaffold additional artifacts (skills, evals, brand docs)
 - [x] Replace `[pm]` in `.github/workflows/ci.yml` with your package manager

@@ -42,17 +42,19 @@ Client-side data import wizard for CSV, OFX, and QIF financial files. Provides a
 
 ## Progress
 - [x] CLAUDE.md created (this file)
-- [ ] Feature logger created: `src/client/features/import/logger.ts`
-- [ ] Requirements written
-- [ ] Architecture updated
-- [ ] Implementation complete
-- [ ] All try-catch blocks use `log.error()`
-- [ ] Tests passing
-- [ ] Secret scan passed
-- [ ] Self-review completed
-- [ ] ARCHITECTURE.md Feature Log updated
-- [ ] Cross-boundary edits logged below
+- [x] Feature logger created: `src/client/features/import/logger.ts`
+- [x] Requirements written
+- [x] Architecture updated
+- [x] Implementation complete
+- [x] All try-catch blocks use `log.error()`
+- [x] Tests passing
+- [x] Secret scan passed
+- [x] Self-review completed
+- [x] ARCHITECTURE.md Feature Log updated
+- [x] Cross-boundary edits logged below
 
 ## Cross-Boundary Edit Log
 | Date | File | Change | Approved By |
 |------|------|--------|-------------|
+| 2026-03-21 | `src/client/app/app.tsx` | Added `/import` route | Master plan pre-approval |
+| 2026-03-21 | `src/client/app/layout.tsx` | Added "Import" nav item | Master plan pre-approval |

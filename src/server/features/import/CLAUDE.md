@@ -42,18 +42,23 @@ Server-side data import handling for CSV, OFX, and QIF financial files. Manages 
 
 ## Progress
 - [x] CLAUDE.md created (this file)
-- [ ] Feature logger created: `src/server/features/import/logger.ts`
-- [ ] Requirements written
-- [ ] Architecture updated
-- [ ] Implementation complete
-- [ ] All try-catch blocks use `log.error()`
-- [ ] All API routes log entry + errors
-- [ ] Tests passing
-- [ ] Secret scan passed
-- [ ] Self-review completed
-- [ ] ARCHITECTURE.md Feature Log updated
-- [ ] Cross-boundary edits logged below
+- [x] Feature logger created: `src/server/features/import/logger.ts`
+- [x] Requirements written
+- [x] Architecture updated
+- [x] Implementation complete
+- [x] All try-catch blocks use `log.error()`
+- [x] All API routes log entry + errors
+- [x] Tests passing
+- [x] Secret scan passed
+- [x] Self-review completed
+- [x] ARCHITECTURE.md Feature Log updated
+- [x] Cross-boundary edits logged below
 
 ## Cross-Boundary Edit Log
 | Date | File | Change | Approved By |
 |------|------|--------|-------------|
+| 2026-03-21 | `src/server/app.ts` | Registered import router | Master plan pre-approval |
+| 2026-03-21 | `src/server/lib/db/schema/index.ts` | Added import_sessions table | Master plan pre-approval |
+| 2026-03-21 | `src/shared/types/index.ts` | Added import types | Master plan pre-approval |
+| 2026-03-21 | `src/shared/types/validation.ts` | Added import schemas | Master plan pre-approval |
+| 2026-03-21 | `tests/server-setup.ts` | Added import_sessions table to CI setup | Master plan pre-approval |
