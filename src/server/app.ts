@@ -1,10 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
 import { errorHandler } from './shared/middleware/error-handler.js';
 import { createLogger } from './lib/logger.js';
+
+const require = createRequire(import.meta.url);
+const pkg = require('../../package.json') as { version: string };
 
 const log = createLogger('app');
 
@@ -31,8 +35,22 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.json());
 
 // Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (_req, res) => {
+  let dbStatus = 'ok';
+  try {
+    const { sqlite } = await import('./lib/db/index.js');
+    sqlite.prepare('SELECT 1').get();
+  } catch {
+    dbStatus = 'error';
+  }
+
+  res.json({
+    status: dbStatus === 'ok' ? 'ok' : 'degraded',
+    timestamp: new Date().toISOString(),
+    version: pkg.version,
+    uptime: Math.floor(process.uptime()),
+    database: dbStatus,
+  });
 });
 
 // --- API routers ---
