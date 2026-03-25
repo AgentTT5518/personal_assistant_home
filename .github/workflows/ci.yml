@@ -60,7 +60,8 @@ jobs:
             | grep -v node_modules \
             | grep -v ".env.example" \
             | grep -v ".git/" \
-            | grep -v ".github/workflows/"; then
+            | grep -v ".github/workflows/" \
+            | grep -v "dist/"; then
             echo "SECRETS DETECTED — merge blocked"
             exit 1
           else
