@@ -169,7 +169,7 @@ describe('ClaudeProvider', () => {
 
   describe('isAvailable', () => {
     it('returns true when ANTHROPIC_API_KEY is set', async () => {
-      process.env.ANTHROPIC_API_KEY = 'sk-test-key';
+      process.env.ANTHROPIC_API_KEY = 'test-api-key-123';
       expect(await provider.isAvailable()).toBe(true);
     });
 

@@ -208,7 +208,7 @@ describe('OpenAICompatProvider', () => {
 
   describe('isAvailable', () => {
     it('returns true when OPENAI_API_KEY is set', async () => {
-      process.env.OPENAI_API_KEY = 'sk-test-key';
+      process.env.OPENAI_API_KEY = 'test-api-key-123';
       expect(await provider.isAvailable()).toBe(true);
     });
 
