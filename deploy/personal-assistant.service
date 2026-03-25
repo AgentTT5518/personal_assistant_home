@@ -1,0 +1,17 @@
+[Unit]
+Description=Personal Assistant Home
+After=network.target
+
+[Service]
+Type=simple
+User=personal-assistant
+WorkingDirectory=/opt/personal-assistant
+EnvironmentFile=/opt/personal-assistant/.env
+ExecStart=/usr/bin/node dist/server/server/index.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
