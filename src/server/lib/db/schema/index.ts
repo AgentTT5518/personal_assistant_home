@@ -1,4 +1,4 @@
-import { sqliteTable, text, real, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, real, integer, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 
 export const documents = sqliteTable('documents', {
   id: text('id').primaryKey(),
@@ -14,7 +14,9 @@ export const documents = sqliteTable('documents', {
   accountId: text('account_id').references(() => accounts.id, { onDelete: 'set null' }),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
-});
+}, (table) => [
+  index('documents_processing_status_idx').on(table.processingStatus),
+]);
 
 export const transactions = sqliteTable('transactions', {
   id: text('id').primaryKey(),
@@ -32,7 +34,12 @@ export const transactions = sqliteTable('transactions', {
   accountId: text('account_id').references(() => accounts.id, { onDelete: 'set null' }),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
-});
+}, (table) => [
+  index('transactions_date_idx').on(table.date),
+  index('transactions_category_id_idx').on(table.categoryId),
+  index('transactions_account_id_idx').on(table.accountId),
+  index('transactions_merchant_idx').on(table.merchant),
+]);
 
 export const categories = sqliteTable('categories', {
   id: text('id').primaryKey(),
