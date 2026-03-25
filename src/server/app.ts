@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import path from 'path';
 import fs from 'fs';
 import { errorHandler } from './shared/middleware/error-handler.js';
@@ -9,8 +10,24 @@ const log = createLogger('app');
 
 export const app = express();
 
-// Middleware
-app.use(cors({ origin: 'http://localhost:5173' }));
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
+
+// CORS (dev only — production serves client from same origin)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(cors({ origin: 'http://localhost:5173' }));
+}
+
 app.use(express.json());
 
 // Health check
