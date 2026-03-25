@@ -5,8 +5,9 @@ import path from 'path';
 
 vi.mock('multer', () => {
   const singleFn = vi.fn().mockReturnValue(vi.fn());
-  const multerFn = vi.fn().mockReturnValue({ single: singleFn });
-  multerFn.diskStorage = vi.fn().mockReturnValue({});
+  const multerFn = Object.assign(vi.fn().mockReturnValue({ single: singleFn }), {
+    diskStorage: vi.fn().mockReturnValue({}),
+  });
   return { default: multerFn };
 });
 
@@ -57,8 +58,9 @@ describe('upload.middleware', () => {
     // Re-mock after resetModules
     vi.doMock('multer', () => {
       const singleFn = vi.fn().mockReturnValue(vi.fn());
-      const multerFn = vi.fn().mockReturnValue({ single: singleFn });
-      multerFn.diskStorage = vi.fn().mockReturnValue({});
+      const multerFn = Object.assign(vi.fn().mockReturnValue({ single: singleFn }), {
+        diskStorage: vi.fn().mockReturnValue({}),
+      });
       return { default: multerFn };
     });
 

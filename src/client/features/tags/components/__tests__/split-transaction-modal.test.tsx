@@ -46,6 +46,10 @@ const mockTransaction = {
   documentFilename: null,
   isRecurring: false,
   recurringGroupId: null,
+  accountId: 'acc1',
+  accountName: 'Checking',
+  importSessionId: null,
+  createdAt: '2026-01-15T00:00:00Z',
 };
 
 describe('SplitTransactionModal', () => {

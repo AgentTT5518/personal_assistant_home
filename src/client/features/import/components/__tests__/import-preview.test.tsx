@@ -18,6 +18,8 @@ const mockRows: ImportPreviewRow[] = [
     type: 'debit',
     isDuplicate: false,
     selected: true,
+    merchant: null,
+    duplicateKey: '',
   },
   {
     rowIndex: 1,
@@ -27,6 +29,8 @@ const mockRows: ImportPreviewRow[] = [
     type: 'credit',
     isDuplicate: false,
     selected: true,
+    merchant: null,
+    duplicateKey: '',
   },
   {
     rowIndex: 2,
@@ -36,6 +40,8 @@ const mockRows: ImportPreviewRow[] = [
     type: 'debit',
     isDuplicate: true,
     selected: false,
+    merchant: 'Netflix',
+    duplicateKey: '2026-03-03|Netflix|15.99',
   },
 ];
 

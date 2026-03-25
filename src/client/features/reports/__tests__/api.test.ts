@@ -80,7 +80,7 @@ describe('fetchReport', () => {
 });
 
 describe('generateReport', () => {
-  const payload = { periodFrom: '2026-01-01', periodTo: '2026-01-31', reportType: 'spending_breakdown' as const };
+  const payload = { periodFrom: '2026-01-01', periodTo: '2026-01-31', reportType: 'monthly' as const };
 
   it('generates a report', async () => {
     const data = { id: '2', ...payload };
