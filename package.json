@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/server/lib/db/migrate.ts",
-    "db:seed": "tsx src/server/lib/db/seed.ts"
+    "db:seed": "tsx src/server/lib/db/seed.ts",
+    "backup": "tsx scripts/backup.ts"
   },
   "repository": {
     "type": "git",
