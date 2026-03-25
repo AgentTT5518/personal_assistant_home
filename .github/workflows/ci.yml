@@ -28,11 +28,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # cache: 'npm'   # uncomment and set to pnpm/bun/npm once lock file exists
+          cache: 'npm'
 
       - name: Install dependencies
         if: steps.node_check.outputs.has_node == 'true'
-        run: npm install   # replace with your package manager (pnpm/bun/yarn)
+        run: npm ci
 
       - name: Type check
         if: steps.node_check.outputs.has_node == 'true'
@@ -46,6 +46,10 @@ jobs:
         if: steps.node_check.outputs.has_node == 'true'
         run: npm run test
 
+      - name: Build
+        if: steps.node_check.outputs.has_node == 'true'
+        run: npm run build
+
       - name: Secret scan
         run: |
           if grep -rn "sk-\|AKIA\|ghp_\|Bearer \|password\s*=" \
@@ -56,7 +60,8 @@ jobs:
             | grep -v node_modules \
             | grep -v ".env.example" \
             | grep -v ".git/" \
-            | grep -v ".github/workflows/"; then
+            | grep -v ".github/workflows/" \
+            | grep -v "dist/"; then
             echo "SECRETS DETECTED — merge blocked"
             exit 1
           else
