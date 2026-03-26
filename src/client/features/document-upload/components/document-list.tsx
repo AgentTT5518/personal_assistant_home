@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Eye, RefreshCw, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import type { DocumentType, ProcessingStatus } from '../../../../shared/types/index.js';
 import { useDocuments, useDeleteDocument, useReprocessVision } from '../hooks.js';
 
@@ -34,7 +35,10 @@ export function DocumentList() {
 
   function handleDelete(id: string) {
     if (confirmDelete === id) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(id, {
+        onSuccess: () => toast.success('Document deleted'),
+        onError: (err) => toast.error(err.message),
+      });
       setConfirmDelete(null);
     } else {
       setConfirmDelete(id);
@@ -149,7 +153,10 @@ export function DocumentList() {
                     {doc.hasFile &&
                       (doc.processingStatus === 'completed' || doc.processingStatus === 'failed') && (
                         <button
-                          onClick={() => visionMutation.mutate(doc.id)}
+                          onClick={() => visionMutation.mutate(doc.id, {
+                            onSuccess: () => toast.success('Document reprocessed'),
+                            onError: (err) => toast.error(err.message),
+                          })}
                           disabled={visionMutation.isPending}
                           className="text-gray-400 hover:text-blue-600"
                           title="Re-process with Vision"

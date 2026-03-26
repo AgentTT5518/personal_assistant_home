@@ -57,6 +57,13 @@
       "when": 1774409482874,
       "tag": "0007_swift_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1774497240054,
+      "tag": "0008_damp_spitfire",
+      "breakpoints": true
     }
   ]
 }

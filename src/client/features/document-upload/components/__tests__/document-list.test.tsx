@@ -149,7 +149,7 @@ describe('DocumentList', () => {
     fireEvent.click(deleteButtons[0].closest('button')!);
     // Second click confirms the delete
     fireEvent.click(deleteButtons[0].closest('button')!);
-    expect(mockDeleteMutate).toHaveBeenCalledWith('d1');
+    expect(mockDeleteMutate).toHaveBeenCalledWith('d1', expect.any(Object));
   });
 
   it('shows reprocess button for completed documents with files', async () => {
@@ -169,7 +169,7 @@ describe('DocumentList', () => {
     renderWithRouter(<DocumentList />);
     const refreshButtons = screen.getAllByTestId('refresh-icon');
     fireEvent.click(refreshButtons[0].closest('button')!);
-    expect(mockVisionMutate).toHaveBeenCalledWith('d1');
+    expect(mockVisionMutate).toHaveBeenCalledWith('d1', expect.any(Object));
   });
 
   it('renders processing status with correct style', async () => {

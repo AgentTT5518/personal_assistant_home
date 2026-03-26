@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Upload, CheckCircle, ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { AccountSelector } from '../../accounts/components/account-selector.js';
 import { useUploadImport, useSaveColumnMapping, useConfirmImport } from '../hooks.js';
 import { ColumnMapper } from './column-mapper.js';
@@ -80,9 +81,11 @@ export function ImportWizard() {
         });
         setImportedCount(result.importedCount);
         setStep('complete');
+        toast.success(`Imported ${result.importedCount} transactions`);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Import failed';
         setError(message);
+        toast.error(message);
         log.error('Import confirm failed', err instanceof Error ? err : new Error(message));
       }
     },

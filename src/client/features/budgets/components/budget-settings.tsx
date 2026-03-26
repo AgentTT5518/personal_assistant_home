@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Loader2, Plus, Trash2, Save } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useCategories } from '../../transactions/hooks.js';
 import { useBudgets, useCreateBudget, useUpdateBudget, useDeleteBudget } from '../hooks.js';
 import { useCurrency } from '../../settings/index.js';
@@ -47,10 +48,12 @@ export function BudgetSettings() {
       { categoryId: newCategoryId, amount, period: newPeriod },
       {
         onSuccess: () => {
+          toast.success('Budget created');
           setNewCategoryId('');
           setNewAmount('');
           setNewPeriod('monthly');
         },
+        onError: (err) => toast.error(err.message),
       },
     );
   }
@@ -66,7 +69,10 @@ export function BudgetSettings() {
     if (isNaN(amount) || amount <= 0) return;
     updateBudget.mutate(
       { id, amount, period: editPeriod },
-      { onSuccess: () => setEditingId(null) },
+      {
+        onSuccess: () => { toast.success('Budget updated'); setEditingId(null); },
+        onError: (err) => toast.error(err.message),
+      },
     );
   }
 
@@ -136,7 +142,10 @@ export function BudgetSettings() {
                       Edit
                     </button>
                     <button
-                      onClick={() => deleteBudget.mutate(budget.id)}
+                      onClick={() => deleteBudget.mutate(budget.id, {
+                        onSuccess: () => toast.success('Budget deleted'),
+                        onError: (err) => toast.error(err.message),
+                      })}
                       disabled={deleteBudget.isPending}
                       className="p-1 text-red-400 hover:text-red-600"
                     >

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, RefreshCw } from 'lucide-react';
+import toast from 'react-hot-toast';
 import type { AccountResponse } from '../../../../shared/types/index.js';
 import { formatCurrency } from '../../../shared/utils/format-currency.js';
 import { useCurrency } from '../../settings/index.js';
@@ -31,11 +32,17 @@ export function AccountList() {
     if (!confirm(message)) return;
 
     const hard = (account.transactionCount ?? 0) === 0;
-    deleteMutation.mutate({ id: account.id, hard });
+    deleteMutation.mutate({ id: account.id, hard }, {
+      onSuccess: () => toast.success('Account deleted'),
+      onError: (err) => toast.error(err.message),
+    });
   };
 
   const handleRecalculate = (id: string) => {
-    recalculateMutation.mutate(id);
+    recalculateMutation.mutate(id, {
+      onSuccess: () => toast.success('Balance recalculated'),
+      onError: (err) => toast.error(err.message),
+    });
   };
 
   if (isLoading) {

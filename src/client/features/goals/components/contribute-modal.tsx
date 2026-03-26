@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useContributeToGoal } from '../hooks.js';
 import { formatCurrency } from '../../../shared/utils/format-currency.js';
 import type { GoalResponse } from '../../../../shared/types/index.js';
@@ -24,7 +25,10 @@ export function ContributeModal({ goal, currency, onClose }: ContributeModalProp
 
     contribute.mutate(
       { id: goal.id, amount: parsedAmount, note: note || null },
-      { onSuccess: onClose },
+      {
+        onSuccess: () => { toast.success('Contribution added'); onClose(); },
+        onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to contribute'),
+      },
     );
   }
 

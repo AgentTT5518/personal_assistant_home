@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { AccountSelector } from '../../accounts/index.js';
 import { useCategories } from '../../transactions/hooks.js';
 import { useCreateBill, useUpdateBill } from '../hooks.js';
@@ -62,9 +63,15 @@ export function BillForm({ bill, onClose }: BillFormProps) {
     };
 
     if (isEditing) {
-      updateBill.mutate({ id: bill.id, ...data }, { onSuccess: onClose });
+      updateBill.mutate({ id: bill.id, ...data }, {
+        onSuccess: () => { toast.success('Bill updated'); onClose(); },
+        onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to update bill'),
+      });
     } else {
-      createBill.mutate(data, { onSuccess: onClose });
+      createBill.mutate(data, {
+        onSuccess: () => { toast.success('Bill created'); onClose(); },
+        onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to create bill'),
+      });
     }
   }
 

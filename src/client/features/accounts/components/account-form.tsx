@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import type { AccountResponse, AccountType } from '../../../../shared/types/index.js';
 import { useCreateAccount, useUpdateAccount } from '../hooks.js';
 
@@ -64,14 +65,14 @@ export function AccountForm({ account, onClose }: AccountFormProps) {
       updateMutation.mutate(
         { id: account!.id, ...data },
         {
-          onSuccess: onClose,
-          onError: (err) => setError(err.message),
+          onSuccess: () => { toast.success('Account updated'); onClose(); },
+          onError: (err) => { toast.error(err.message); setError(err.message); },
         },
       );
     } else {
       createMutation.mutate(data, {
-        onSuccess: onClose,
-        onError: (err) => setError(err.message),
+        onSuccess: () => { toast.success('Account created'); onClose(); },
+        onError: (err) => { toast.error(err.message); setError(err.message); },
       });
     }
   };
