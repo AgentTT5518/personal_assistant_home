@@ -1,20 +1,6 @@
 # CLAUDE.md
 
-## Setup Checklist
-<!-- NOTE: This is a template repo. All items below are intentionally unchecked and all [placeholder] values are intentionally unfilled. Complete these items when using this template for a real project. The [pm] tokens in Commands and Rules are also intentional placeholders — replace them with your actual package manager (npm/pnpm/bun). -->
-<!-- Complete ALL items before starting any feature work. Remove each [ ] as you go. -->
-- [x] Fill in Project Identity table below
-- [x] Replace `[pm]` with your package manager in Commands and Rules
-- [x] Update Project Structure with your actual folders
-- [ ] Add project-specific code conventions (fonts, colors, patterns)
-- [x] Define SECRET_SCAN_PATTERNS for your API keys
-- [x] Verify `.gitignore` includes `.env*` and `!.env.example`
-- [x] Copy `docs/templates/logger-template.ts` to `src/lib/logger.ts` — *done as `src/client/lib/logger.ts` + `src/server/lib/logger.ts`*
-- [x] Create ARCHITECTURE.md from template at project root
-- [ ] Run `/project-setup` to scaffold additional artifacts (skills, evals, brand docs)
-- [x] Replace `[pm]` in `.github/workflows/ci.yml` with your package manager
-- [ ] GitHub: enable branch protection on `main` → Settings → Branches → require `ci` status check to pass
-<!-- DELETE this checklist once all items are done — a clean CLAUDE.md = a configured project -->
+<!-- TODO (manual): GitHub → Settings → Branches → enable branch protection on `main`, require `ci` status check to pass -->
 
 ## Project Identity
 | Field | Value |
@@ -40,7 +26,6 @@ npm test             # Run all tests
 npm run lint         # Lint check
 npm run typecheck    # TypeScript check
 ```
-<!-- Replace [pm] with your package manager. Add project-specific commands as needed. -->
 
 ## Project Structure
 ```
@@ -84,7 +69,29 @@ docs/                      # requirements/, decisions/, templates/
 - Use project logger (`src/lib/logger.ts`), never bare `console.log`
 - File naming: kebab-case for files, PascalCase for components
 - Declare type dependencies explicitly — never rely on transitive `@types/*` packages (see `docs/dependency-hygiene.md`)
-<!-- Add project-specific conventions below (fonts, colors, patterns) -->
+
+### Colors (Tailwind defaults — no custom theme)
+- **Primary action:** `blue-600` / `blue-700` (hover)
+- **Selected/active:** `bg-blue-100 text-blue-700`, nav active: `bg-blue-50 text-blue-700`
+- **Success/income:** `green-500` / `green-600`
+- **Danger/expense:** `red-500` / `red-600`
+- **Text:** `gray-900` (headings), `gray-600` (body), `gray-500` (secondary), `gray-400` (disabled/icons)
+- **Borders:** `gray-200` (cards), `gray-300` (inputs), `gray-100` (dividers)
+- **Backgrounds:** `white` (cards), `gray-50` (page bg, hover states), `black/50` (modal overlay)
+
+### Fonts
+System fonts only (Tailwind default stack). No external font imports.
+
+### UI Patterns
+- **Buttons:** Primary `px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 min-h-[44px]`, Secondary same with `text-gray-700 bg-white border border-gray-300 hover:bg-gray-50`
+- **Cards:** `bg-white rounded-lg border border-gray-200 p-6`
+- **Modals:** `fixed inset-0 z-50 bg-black/50` overlay + `bg-white rounded-xl shadow-xl max-w-md mx-4 p-6`
+- **Form inputs:** `w-full border border-gray-300 rounded-lg px-3 py-2 text-sm`
+- **Page title:** `text-2xl font-bold text-gray-900 mb-6`
+- **Empty states:** centered `py-16`, icon in `bg-gray-100 rounded-full p-4`, CTA button below
+- **Touch targets:** min `44×44px` on all interactive elements
+- **Icons:** Lucide React, 16–32px
+- **Responsive:** mobile-first (`sm:`, `md:`, `lg:` breakpoints)
 
 ## Git Workflow
 - Branches: `feature/[short-desc]`, `fix/[short-desc]`
