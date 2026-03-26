@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Loader2, ArrowUp, ArrowDown, FileText } from 'lucide-react';
+import toast from 'react-hot-toast';
 import type { TransactionResponse, TransactionFilters, PaginatedResponse } from '../../../../shared/types/index.js';
 import { useUpdateTransaction } from '../hooks.js';
 import { CategorySelector } from './category-selector.js';
@@ -59,7 +60,10 @@ export function TransactionTable({
 
   const handleCategoryChange = useCallback(
     (txnId: string, categoryId: string | null) => {
-      updateTransaction.mutate({ id: txnId, categoryId });
+      updateTransaction.mutate({ id: txnId, categoryId }, {
+        onSuccess: () => toast.success('Category updated'),
+        onError: (err) => toast.error(err.message),
+      });
       setEditingCategoryId(null);
     },
     [updateTransaction],

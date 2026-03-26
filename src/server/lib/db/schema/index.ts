@@ -39,6 +39,7 @@ export const transactions = sqliteTable('transactions', {
   index('transactions_category_id_idx').on(table.categoryId),
   index('transactions_account_id_idx').on(table.accountId),
   index('transactions_merchant_idx').on(table.merchant),
+  index('transactions_type_idx').on(table.type),
 ]);
 
 export const categories = sqliteTable('categories', {
@@ -124,6 +125,7 @@ export const transactionTags = sqliteTable('transaction_tags', {
   tagId: text('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
 }, (table) => [
   uniqueIndex('transaction_tags_unique').on(table.transactionId, table.tagId),
+  index('transaction_tags_tag_id_idx').on(table.tagId),
 ]);
 
 export const splitTransactions = sqliteTable('split_transactions', {

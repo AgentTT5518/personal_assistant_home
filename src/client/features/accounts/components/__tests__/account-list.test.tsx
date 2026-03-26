@@ -135,7 +135,7 @@ describe('AccountList', () => {
     render(<AccountList />);
     const recalcButton = screen.getByTitle('Recalculate balance');
     fireEvent.click(recalcButton);
-    expect(mockRecalculateMutate).toHaveBeenCalledWith('acc-1');
+    expect(mockRecalculateMutate).toHaveBeenCalledWith('acc-1', expect.any(Object));
   });
 
   it('calls deleteMutation when delete is confirmed for account with no transactions', () => {
@@ -144,7 +144,7 @@ describe('AccountList', () => {
     // acc-2 has transactionCount: 0
     const deleteButtons = screen.getAllByTitle('Delete');
     fireEvent.click(deleteButtons[1]); // second delete button = acc-2
-    expect(mockDeleteMutate).toHaveBeenCalledWith({ id: 'acc-2', hard: true });
+    expect(mockDeleteMutate).toHaveBeenCalledWith({ id: 'acc-2', hard: true }, expect.any(Object));
     vi.restoreAllMocks();
   });
 
@@ -153,7 +153,7 @@ describe('AccountList', () => {
     render(<AccountList />);
     const deleteButtons = screen.getAllByTitle('Delete');
     fireEvent.click(deleteButtons[0]); // first delete button = acc-1
-    expect(mockDeleteMutate).toHaveBeenCalledWith({ id: 'acc-1', hard: false });
+    expect(mockDeleteMutate).toHaveBeenCalledWith({ id: 'acc-1', hard: false }, expect.any(Object));
     vi.restoreAllMocks();
   });
 

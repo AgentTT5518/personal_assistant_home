@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { AccountSelector } from '../../accounts/index.js';
 import { useCategories } from '../../transactions/hooks.js';
 import { useCreateGoal, useUpdateGoal } from '../hooks.js';
@@ -56,7 +57,10 @@ export function GoalForm({ goal, onClose }: GoalFormProps) {
         accountId,
         categoryId,
         status,
-      }, { onSuccess: onClose });
+      }, {
+        onSuccess: () => { toast.success('Goal updated'); onClose(); },
+        onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to update goal'),
+      });
     } else {
       createGoal.mutate({
         name,
@@ -64,7 +68,10 @@ export function GoalForm({ goal, onClose }: GoalFormProps) {
         deadline: deadline || null,
         accountId,
         categoryId,
-      }, { onSuccess: onClose });
+      }, {
+        onSuccess: () => { toast.success('Goal created'); onClose(); },
+        onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to create goal'),
+      });
     }
   }
 

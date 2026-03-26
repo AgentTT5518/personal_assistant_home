@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useGoals, useDeleteGoal, useSyncGoalBalance, GoalCard, GoalForm, ContributeModal } from '../../features/goals/index.js';
 import { useCurrency } from '../../features/settings/index.js';
 import type { GoalResponse, GoalStatus } from '../../../shared/types/index.js';
@@ -26,7 +27,10 @@ export function GoalsPage() {
 
   function handleDelete(id: string) {
     if (confirm('Delete this goal and all its contributions?')) {
-      deleteGoal.mutate(id);
+      deleteGoal.mutate(id, {
+        onSuccess: () => toast.success('Goal deleted'),
+        onError: (err) => toast.error(err.message),
+      });
     }
   }
 
@@ -34,9 +38,12 @@ export function GoalsPage() {
     syncBalance.mutate(id, {
       onSuccess: (data) => {
         if ('warning' in data && data.warning) {
-          alert(data.warning);
+          toast(data.warning, { icon: '\u26a0\ufe0f', duration: 5000 });
+        } else {
+          toast.success('Balance synced');
         }
       },
+      onError: (err) => toast.error(err.message),
     });
   }
 

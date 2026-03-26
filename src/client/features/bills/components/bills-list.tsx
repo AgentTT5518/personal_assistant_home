@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Check, RefreshCw, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useBills, useDeleteBill, useMarkBillPaid, usePopulateFromRecurring } from '../hooks.js';
 import { useCurrency } from '../../settings/index.js';
 import { formatCurrency } from '../../../shared/utils/format-currency.js';
@@ -56,18 +57,16 @@ export function BillsList() {
           Add Bill
         </button>
         <button
-          onClick={() => populate.mutate()}
+          onClick={() => populate.mutate(undefined, {
+            onSuccess: (data) => toast.success(`Created ${data.created} bills, skipped ${data.skipped}`),
+            onError: (err) => toast.error(err.message),
+          })}
           disabled={populate.isPending}
           className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 min-h-[44px]"
         >
           <RefreshCw size={14} className={populate.isPending ? 'animate-spin' : ''} />
           Import from Recurring
         </button>
-        {populate.isSuccess && populate.data && (
-          <span className="text-sm text-green-600">
-            Created {populate.data.created}, skipped {populate.data.skipped}
-          </span>
-        )}
       </div>
 
       {sorted.length === 0 ? (
@@ -107,7 +106,10 @@ export function BillsList() {
 
                 <div className="flex items-center gap-1 shrink-0">
                   <button
-                    onClick={() => markPaid.mutate(bill.id)}
+                    onClick={() => markPaid.mutate(bill.id, {
+                      onSuccess: () => toast.success('Bill marked as paid'),
+                      onError: (err) => toast.error(err.message),
+                    })}
                     disabled={markPaid.isPending}
                     className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Mark as paid"
@@ -124,7 +126,10 @@ export function BillsList() {
                     <Pencil size={14} />
                   </button>
                   <button
-                    onClick={() => deleteBill.mutate(bill.id)}
+                    onClick={() => deleteBill.mutate(bill.id, {
+                      onSuccess: () => toast.success('Bill deleted'),
+                      onError: (err) => toast.error(err.message),
+                    })}
                     disabled={deleteBill.isPending}
                     className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Delete"

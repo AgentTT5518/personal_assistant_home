@@ -137,13 +137,13 @@ describe('BillsList', () => {
   it('calls markPaid when mark as paid button is clicked', () => {
     render(<BillsList />);
     fireEvent.click(screen.getAllByLabelText('Mark as paid')[0]);
-    expect(mockMarkPaidMutate).toHaveBeenCalledWith('bill-1');
+    expect(mockMarkPaidMutate).toHaveBeenCalledWith('bill-1', expect.any(Object));
   });
 
   it('calls deleteBill when delete button is clicked', () => {
     render(<BillsList />);
     fireEvent.click(screen.getAllByLabelText('Delete')[0]);
-    expect(mockDeleteMutate).toHaveBeenCalledWith('bill-1');
+    expect(mockDeleteMutate).toHaveBeenCalledWith('bill-1', expect.any(Object));
   });
 
   it('shows bill form when Add Bill is clicked', () => {
