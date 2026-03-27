@@ -7,7 +7,7 @@ import { createLogger } from '../logger.js';
 const log = createLogger('db-seed');
 
 const defaultAiSettings = [
-  { taskType: 'pdf_extraction', provider: 'claude', model: 'claude-sonnet-4-5-20250514' },
+  { taskType: 'pdf_extraction', provider: 'ollama', model: 'qwen2.5-coder:14b' },
   { taskType: 'categorisation', provider: 'claude', model: 'claude-haiku-4-5-20251001' },
   { taskType: 'analysis_insights', provider: 'claude', model: 'claude-sonnet-4-5-20250514' },
   { taskType: 'insurance_analysis', provider: 'claude', model: 'claude-sonnet-4-5-20250514' },

@@ -27,31 +27,77 @@ export const uploadDocumentSchema = z.object({
   period: z.string().max(100).optional(),
 });
 
+// Null-safe transforms: local LLMs (Ollama) often return null for string/number
+// fields despite prompts asking for "" or 0. These transforms coerce null → safe
+// defaults so schema validation passes. No behavior change for valid (non-null) data.
 export const extractedTransactionSchema = z.object({
   date: z.string().date(),
-  description: z.string(),
+  description: z
+    .string()
+    .nullable()
+    .transform((v) => v ?? ''),
   amount: z.number(),
   type: z.enum(['debit', 'credit']),
-  merchant: z.string().optional(),
-  isRecurring: z.boolean().optional(),
+  merchant: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? undefined),
+  isRecurring: z
+    .boolean()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? false),
 });
 
 export const extractionResultSchema = z.object({
   transactions: z.array(extractedTransactionSchema),
   accountSummary: z
     .object({
-      openingBalance: z.number().optional(),
-      closingBalance: z.number().optional(),
-      totalCredits: z.number().optional(),
-      totalDebits: z.number().optional(),
-      currency: z.string().optional(),
+      openingBalance: z
+        .number()
+        .nullable()
+        .optional()
+        .transform((v) => v ?? undefined),
+      closingBalance: z
+        .number()
+        .nullable()
+        .optional()
+        .transform((v) => v ?? undefined),
+      totalCredits: z
+        .number()
+        .nullable()
+        .optional()
+        .transform((v) => v ?? undefined),
+      totalDebits: z
+        .number()
+        .nullable()
+        .optional()
+        .transform((v) => v ?? undefined),
+      currency: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((v) => v ?? undefined),
     })
     .optional(),
   metadata: z
     .object({
-      institution: z.string().optional(),
-      period: z.string().optional(),
-      accountNumber: z.string().optional(),
+      institution: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((v) => v ?? undefined),
+      period: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((v) => v ?? undefined),
+      accountNumber: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((v) => v ?? undefined),
     })
     .optional(),
 });
