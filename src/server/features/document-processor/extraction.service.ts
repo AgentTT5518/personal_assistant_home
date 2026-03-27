@@ -124,6 +124,11 @@ export async function processDocument(documentId: string): Promise<void> {
         doc.period ?? undefined,
       );
 
+      // For single-chunk (non-split) documents, let errors propagate so the
+      // outer try-catch sets processingStatus to 'failed'. For multi-chunk
+      // documents, catch per-chunk errors and continue with remaining chunks.
+      const isMultiChunk = textChunks.length > 1;
+
       try {
         const aiResponse = await routeToProvider('pdf_extraction', messages, {
           maxTokens: 8192,
@@ -140,16 +145,29 @@ export async function processDocument(documentId: string): Promise<void> {
           allTransactions.push(...chunkValidation.data.transactions);
           if (chunkValidation.data.accountSummary) lastAccountSummary = chunkValidation.data.accountSummary;
           if (chunkValidation.data.metadata) lastMetadata = chunkValidation.data.metadata;
-        } else {
-          log.warn('Chunk validation failed, attempting partial extraction', {
+        } else if (isMultiChunk) {
+          log.warn('Chunk validation failed, continuing with remaining chunks', {
             documentId,
             chunk: ci + 1,
             totalChunks: textChunks.length,
             errors: chunkValidation.error.issues.length,
           });
+        } else {
+          // Single chunk failed validation — fail the document
+          log.error('AI response validation failed', new Error(chunkValidation.error.message), { documentId });
+          db.update(schema.documents)
+            .set({
+              processingStatus: 'failed',
+              rawExtraction: JSON.stringify({ error: chunkValidation.error.message }),
+              updatedAt: now(),
+            })
+            .where(eq(schema.documents.id, documentId))
+            .run();
+          return;
         }
       } catch (chunkErr) {
-        log.warn('Chunk AI call failed', {
+        if (!isMultiChunk) throw chunkErr; // Re-throw for single chunk — handled by outer catch
+        log.warn('Chunk AI call failed, continuing with remaining chunks', {
           documentId,
           chunk: ci + 1,
           totalChunks: textChunks.length,
