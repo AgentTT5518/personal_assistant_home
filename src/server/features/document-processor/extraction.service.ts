@@ -10,21 +10,36 @@ import { splitPdfIfNeeded } from './splitter.js';
 import { getPromptForDocType } from './prompts/index.js';
 import { deduplicateTransactions, buildTransactionKey } from './dedup.js';
 import { runRuleCategorisation } from '../transactions/categorisation.service.js';
+import { parseAiResponse } from './json-repair.js';
 import { log } from './logger.js';
 
 const BATCH_INSERT_SIZE = 100;
 
-function parseAiResponse(raw: string): unknown {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    // AI may wrap JSON in markdown code fences
-    const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(raw);
-    if (match) {
-      return JSON.parse(match[1]);
+// Text-based chunking for local models (Ollama) which struggle with large inputs
+const CHUNK_TEXT_THRESHOLD = 6000;
+const CHUNK_TARGET_SIZE = 5000;
+const CHUNK_OVERLAP = 200;
+
+function splitTextIntoChunks(text: string): string[] {
+  if (text.length <= CHUNK_TEXT_THRESHOLD) return [text];
+
+  const chunks: string[] = [];
+  let offset = 0;
+
+  while (offset < text.length) {
+    let end = Math.min(offset + CHUNK_TARGET_SIZE, text.length);
+    if (end < text.length) {
+      const newlineIdx = text.lastIndexOf('\n', end);
+      if (newlineIdx > offset + CHUNK_TARGET_SIZE * 0.5) end = newlineIdx + 1;
     }
-    throw new Error('Failed to parse AI response as JSON');
+    chunks.push(text.slice(offset, end));
+    if (end >= text.length) break;
+    const advance = end - offset - CHUNK_OVERLAP;
+    if (advance <= 0) break;
+    offset += advance;
   }
+
+  return chunks;
 }
 
 export async function processDocument(documentId: string): Promise<void> {
@@ -84,22 +99,102 @@ export async function processDocument(documentId: string): Promise<void> {
       .where(eq(schema.documents.id, documentId))
       .run();
 
-    // Build prompt and call AI
-    const messages = getPromptForDocType(
-      doc.docType as DocumentType,
-      fullText,
-      doc.institution ?? undefined,
-      doc.period ?? undefined,
-    );
+    // Split text into chunks for large documents (helps local models avoid timeouts)
+    const textChunks = splitTextIntoChunks(fullText);
+    if (textChunks.length > 1) {
+      log.info('Text chunking applied', { documentId, chunks: textChunks.length, totalChars: fullText.length });
+    }
 
-    const aiResponse = await routeToProvider('pdf_extraction', messages, {
-      maxTokens: 8192,
-      temperature: 0,
+    // Process each chunk through AI and merge results
+    type ExtractedTxn = { date: string; description: string; amount: number; type: 'debit' | 'credit'; merchant?: string; isRecurring?: boolean };
+    type AccountSummary = { openingBalance?: number; closingBalance?: number; totalCredits?: number; totalDebits?: number; currency?: string };
+    type DocMetadata = { institution?: string; period?: string; accountNumber?: string };
+    const allTransactions: ExtractedTxn[] = [];
+    let lastAccountSummary: AccountSummary | undefined;
+    let lastMetadata: DocMetadata | undefined;
+    let lastAiResponse = '';
+    const allRepairs: string[] = [];
+
+    for (let ci = 0; ci < textChunks.length; ci++) {
+      const chunkText = textChunks[ci];
+      const messages = getPromptForDocType(
+        doc.docType as DocumentType,
+        chunkText,
+        doc.institution ?? undefined,
+        doc.period ?? undefined,
+      );
+
+      // For single-chunk (non-split) documents, let errors propagate so the
+      // outer try-catch sets processingStatus to 'failed'. For multi-chunk
+      // documents, catch per-chunk errors and continue with remaining chunks.
+      const isMultiChunk = textChunks.length > 1;
+
+      try {
+        const aiResponse = await routeToProvider('pdf_extraction', messages, {
+          maxTokens: 8192,
+          temperature: 0,
+        });
+
+        lastAiResponse = aiResponse;
+
+        const { parsed, repairs } = parseAiResponse(aiResponse);
+        allRepairs.push(...repairs);
+
+        const chunkValidation = extractionResultSchema.safeParse(parsed);
+        if (chunkValidation.success) {
+          allTransactions.push(...chunkValidation.data.transactions);
+          if (chunkValidation.data.accountSummary) lastAccountSummary = chunkValidation.data.accountSummary;
+          if (chunkValidation.data.metadata) lastMetadata = chunkValidation.data.metadata;
+        } else if (isMultiChunk) {
+          log.warn('Chunk validation failed, continuing with remaining chunks', {
+            documentId,
+            chunk: ci + 1,
+            totalChunks: textChunks.length,
+            errors: chunkValidation.error.issues.length,
+          });
+        } else {
+          // Single chunk failed validation — fail the document
+          log.error('AI response validation failed', new Error(chunkValidation.error.message), { documentId });
+          db.update(schema.documents)
+            .set({
+              processingStatus: 'failed',
+              rawExtraction: JSON.stringify({ error: chunkValidation.error.message }),
+              updatedAt: now(),
+            })
+            .where(eq(schema.documents.id, documentId))
+            .run();
+          return;
+        }
+      } catch (chunkErr) {
+        if (!isMultiChunk) throw chunkErr; // Re-throw for single chunk — handled by outer catch
+        log.warn('Chunk AI call failed, continuing with remaining chunks', {
+          documentId,
+          chunk: ci + 1,
+          totalChunks: textChunks.length,
+          error: chunkErr instanceof Error ? chunkErr.message : String(chunkErr),
+        });
+      }
+    }
+
+    if (allRepairs.length > 0) {
+      log.info('JSON repairs applied to AI response', { documentId, repairs: allRepairs });
+    }
+
+    // Deduplicate transactions from overlapping chunks (same date+description+amount)
+    const chunkDedup = new Set<string>();
+    const dedupedChunkTransactions = allTransactions.filter((t) => {
+      const key = `${t.date}|${t.description}|${t.amount.toFixed(2)}`;
+      if (chunkDedup.has(key)) return false;
+      chunkDedup.add(key);
+      return true;
     });
 
-    // Parse and validate AI response
-    const parsed = parseAiResponse(aiResponse);
-    const validation = extractionResultSchema.safeParse(parsed);
+    // Build a synthetic validation result
+    const validation = extractionResultSchema.safeParse({
+      transactions: dedupedChunkTransactions,
+      accountSummary: lastAccountSummary,
+      metadata: lastMetadata,
+    });
 
     if (!validation.success) {
       log.error('AI response validation failed', new Error(validation.error.message), { documentId });
@@ -115,6 +210,7 @@ export async function processDocument(documentId: string): Promise<void> {
     }
 
     const result = validation.data;
+    const aiResponse = lastAiResponse;
 
     // Deduplicate against existing transactions
     const existingTxns = db

@@ -7,23 +7,12 @@ import { extractionResultSchema } from '../../../shared/types/validation.js';
 import type { DocumentType } from '../../../shared/types/index.js';
 import { getPromptForDocType } from './prompts/index.js';
 import { deduplicateTransactions, buildTransactionKey } from './dedup.js';
+import { parseAiResponse } from './json-repair.js';
 import { runRuleCategorisation } from '../transactions/categorisation.service.js';
 import { log } from './logger.js';
 
 const BATCH_INSERT_SIZE = 100;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB defensive guard
-
-function parseAiResponse(raw: string): unknown {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    const match = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(raw);
-    if (match) {
-      return JSON.parse(match[1]);
-    }
-    throw new Error('Failed to parse AI response as JSON');
-  }
-}
 
 export async function reprocessWithVision(documentId: string): Promise<void> {
   const now = () => new Date().toISOString();
@@ -123,7 +112,10 @@ export async function reprocessWithVision(documentId: string): Promise<void> {
       response.content.find((block) => block.type === 'text')?.text ?? '';
 
     // Parse and validate
-    const parsed = parseAiResponse(aiResponse);
+    const { parsed, repairs } = parseAiResponse(aiResponse);
+    if (repairs.length > 0) {
+      log.info('JSON repairs applied to vision AI response', { documentId, repairs });
+    }
     const validation = extractionResultSchema.safeParse(parsed);
 
     if (!validation.success) {
